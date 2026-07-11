@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>समाधान NEWS</title>
+    <link>https://samadhaannews.in</link>
+    <description>भारत की प्रमुख हिंदी डिजिटल न्यूज़ प्लेटफ़ॉर्म – खबर वही जो सही।</description>
+    <language>hi-IN</language>
+    <lastBuildDate>Thu, 06 Feb 2026 00:00:00 +0530</lastBuildDate>
+    <atom:link href="https://samadhaannews.in/rss.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>समाधान NEWS – ताज़ा हिंदी समाचार</title>
+      <link>https://samadhaannews.in</link>
+      <guid>https://samadhaannews.in</guid>
+      <description>राजनीति, राष्ट्रीय, अंतर्राष्ट्रीय, राज्य, व्यापार, तकनीक, खेल, मनोरंजन, स्वास्थ्य और शिक्षा की ताज़ा खबरें।</description>
+      <pubDate>Thu, 06 Feb 2026 00:00:00 +0530</pubDate>
+    </item>
+  </channel>
+</rss>

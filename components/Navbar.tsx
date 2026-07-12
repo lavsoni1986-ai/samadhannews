@@ -3,11 +3,17 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X, Sun, Moon, Radio } from 'lucide-react';
-import { categories } from '@/lib/mockData';
 import Search from './Search';
 import Logo from './Logo';
 import BreakingNews from './Breaking';
 import { YoutubeIcon } from './icons';
+import { supabase } from '@/lib/supabaseClient';
+
+interface Category {
+  slug: string;
+  name: string;
+  name_en: string;
+}
 
 function getHindiDate(): string {
   try {
@@ -51,9 +57,25 @@ function DarkModeToggle() {
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [date, setDate] = useState('');
+  const [categoriesList, setCategoriesList] = useState<Category[]>([]);
 
   useEffect(() => {
     setDate(getHindiDate());
+    
+    // Fetch categories dynamically from Supabase
+    async function fetchCategories() {
+      try {
+        const { data, error } = await supabase
+          .from('categories')
+          .select('slug, name, name_en')
+          .order('name');
+        if (error) throw error;
+        if (data) setCategoriesList(data);
+      } catch (err) {
+        console.error('Error loading navbar categories:', err);
+      }
+    }
+    fetchCategories();
   }, []);
 
   return (
@@ -129,7 +151,7 @@ export default function Navbar() {
         <div className="hidden lg:block border-t border-border dark:border-slate-700">
           <div className="max-w-7xl mx-auto px-4">
             <nav className="flex items-center gap-1 py-2 overflow-x-auto no-scrollbar" aria-label="श्रेणियां">
-              {categories.map((category) => (
+              {categoriesList.map((category) => (
                 <Link
                   key={category.slug}
                   href={`/category/${category.slug}`}
@@ -158,7 +180,7 @@ export default function Navbar() {
             LIVE TV
           </Link>
           <Link href="/contact" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 font-medium text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800">संपर्क</Link>
-          {categories.map((category) => (
+          {categoriesList.map((category) => (
             <Link
               key={category.slug}
               href={`/category/${category.slug}`}

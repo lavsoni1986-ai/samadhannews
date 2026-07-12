@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { supabase, mapDbNewsToAppNews } from '@/lib/supabaseClient';
 import { News } from '@/lib/mockData';
-import { getStoredNews } from '@/lib/utils';
 
 interface BreakingNewsItemProps {
   news: News;
@@ -27,12 +27,38 @@ export default function BreakingNews() {
   const [breaking, setBreaking] = useState<News[]>([]);
 
   useEffect(() => {
-    // Get latest news from localStorage with fallback
-    const allNews = getStoredNews();
-    const sorted = [...allNews].sort((a, b) => 
-      new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-    );
-    setBreaking(sorted.slice(0, 3));
+    async function fetchBreaking() {
+      try {
+        // Query breaking news first
+        const { data, error } = await supabase
+          .from('news')
+          .select('*')
+          .eq('is_breaking', true)
+          .order('published_at', { ascending: false })
+          .limit(5);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const mapped = data.map(item => mapDbNewsToAppNews(item));
+          setBreaking(mapped);
+        } else {
+          // Fallback to latest 3 news items if no breaking news flag is set
+          const { data: latestNews, error: latestErr } = await supabase
+            .from('news')
+            .select('*')
+            .order('published_at', { ascending: false })
+            .limit(3);
+          
+          if (latestErr) throw latestErr;
+          const mapped = (latestNews || []).map(item => mapDbNewsToAppNews(item));
+          setBreaking(mapped);
+        }
+      } catch (err) {
+        console.error('Error fetching breaking news:', err);
+      }
+    }
+    fetchBreaking();
   }, []);
 
   if (breaking.length === 0) {

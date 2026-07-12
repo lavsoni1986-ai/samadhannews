@@ -2,9 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { News, categories, Category } from '@/lib/mockData';
-import { getStoredNews } from '@/lib/utils';
+import { supabase, mapDbNewsToAppNews } from '@/lib/supabaseClient';
+import { News } from '@/lib/mockData';
 import Footer from '@/components/Footer';
+
+interface Category {
+  slug: string;
+  name: string;
+  name_en: string;
+}
 
 interface CategoryContentProps {
   slug: string;
@@ -14,19 +20,37 @@ const ITEMS_PER_PAGE = 6;
 
 export default function CategoryContent({ slug }: CategoryContentProps) {
   const [categoryNews, setCategoryNews] = useState<News[]>([]);
+  const [categoriesList, setCategoriesList] = useState<Category[]>([]);
   const [mounted, setMounted] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    const allNews = getStoredNews();
-    const filtered = allNews
-      .filter((n: News) => n.category === slug)
-      .sort((a: News, b: News) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-    setCategoryNews(filtered);
-    setMounted(true);
+    async function fetchData() {
+      try {
+        // 1. Fetch categories
+        const { data: cats } = await supabase.from('categories').select('slug, name, name_en');
+        if (cats) setCategoriesList(cats);
+
+        // 2. Fetch news items under this category
+        const { data: newsItems } = await supabase
+          .from('news')
+          .select('*')
+          .eq('category', slug)
+          .order('published_at', { ascending: false });
+        if (newsItems) {
+          const mapped = newsItems.map(item => mapDbNewsToAppNews(item));
+          setCategoryNews(mapped);
+        }
+      } catch (err) {
+        console.error('Error fetching CategoryContent data:', err);
+      } finally {
+        setMounted(true);
+      }
+    }
+    fetchData();
   }, [slug]);
 
-  const category = categories.find((c: Category) => c.slug === slug);
+  const category = categoriesList.find((c: Category) => c.slug === slug);
 
   if (!mounted) {
     return (
@@ -68,40 +92,40 @@ export default function CategoryContent({ slug }: CategoryContentProps) {
   const paginatedNews = categoryNews.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100">
       {/* Breadcrumb */}
-      <nav className="bg-white border-b">
+      <nav className="bg-white dark:bg-slate-800 border-b dark:border-slate-700">
         <div className="max-w-7xl mx-auto px-4 py-3">
-          <ol className="flex items-center gap-2 text-sm text-gray-500">
+          <ol className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
             <li><Link href="/" className="hover:text-red-600">होम</Link></li>
             <li>/</li>
-            <li className="text-gray-900">{category.name}</li>
+            <li className="text-gray-900 dark:text-white">{category.name}</li>
           </ol>
         </div>
       </nav>
 
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-white dark:bg-slate-800 border-b dark:border-slate-700">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-              <span className="text-red-600 text-3xl font-bold">{category.name[0]}</span>
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-950 rounded-full flex items-center justify-center">
+              <span className="text-red-600 dark:text-red-400 text-3xl font-bold">{category.name[0]}</span>
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{category.name}</h1>
-              <p className="text-gray-500">{category.nameEn} समाचार</p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{category.name}</h1>
+              <p className="text-gray-500 dark:text-gray-400">{category.name_en} समाचार</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Category Navigation */}
-      <div className="bg-white border-b sticky top-16 z-40">
+      <div className="bg-white dark:bg-slate-800 border-b dark:border-slate-700 sticky top-16 z-40">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-2 py-3 overflow-x-auto">
             <button
               onClick={() => setCurrentPage(1)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${currentPage === 1 ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${currentPage === 1 ? 'bg-red-600 text-white' : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200'}`}
             >
               सभी
             </button>
@@ -117,7 +141,7 @@ export default function CategoryContent({ slug }: CategoryContentProps) {
               {paginatedNews.map((item: News) => (
                 <div key={item.id}>
                   <Link href={`/news/${item.slug}`}>
-                    <article className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden h-full">
+                    <article className="bg-white dark:bg-slate-800 rounded-lg shadow-sm hover:shadow-md dark:border dark:border-slate-700 transition-shadow overflow-hidden h-full">
                       <div className="relative aspect-[16/9]">
                         {item.youtubeId ? (
                           <>
@@ -139,11 +163,11 @@ export default function CategoryContent({ slug }: CategoryContentProps) {
                         )}
                       </div>
                       <div className="p-4">
-                        <h3 className="font-bold text-gray-900 hover:text-red-600 transition-colors line-clamp-2 text-lg leading-snug">
+                        <h3 className="font-bold text-gray-900 dark:text-white hover:text-red-600 transition-colors line-clamp-2 text-lg leading-snug">
                           {item.title}
                         </h3>
-                        <p className="text-gray-600 text-sm mt-2 line-clamp-2 leading-relaxed">{item.excerpt}</p>
-                        <p className="text-sm text-gray-500 mt-3">
+                        <p className="text-gray-600 dark:text-gray-300 text-sm mt-2 line-clamp-2 leading-relaxed">{item.excerpt}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
                           {new Date(item.publishedAt).toLocaleDateString('hi-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </p>
                       </div>
@@ -159,7 +183,7 @@ export default function CategoryContent({ slug }: CategoryContentProps) {
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-350 rounded hover:bg-gray-300 transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   पिछला
                 </button>
@@ -167,10 +191,10 @@ export default function CategoryContent({ slug }: CategoryContentProps) {
                   <button
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`px-4 py-2 rounded transition-colors ${
+                    className={`px-4 py-2 rounded transition-colors cursor-pointer ${
                       pageNum === currentPage
                         ? 'bg-red-600 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        : 'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
                     }`}
                   >
                     {pageNum}
@@ -179,7 +203,7 @@ export default function CategoryContent({ slug }: CategoryContentProps) {
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-350 rounded hover:bg-gray-300 transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   अगला
                 </button>
@@ -193,7 +217,7 @@ export default function CategoryContent({ slug }: CategoryContentProps) {
         ) : (
           <div className="text-center py-16">
             <div className="text-6xl mb-4">📰</div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">कोई खबर नहीं मिली</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">कोई खबर नहीं मिली</h2>
             <p className="text-gray-500">इस श्रेणी में अभी कोई समाचार उपलब्ध नहीं है।</p>
             <Link href="/" className="inline-block mt-4 text-red-600 font-medium hover:underline">होम पेज पर जाएं</Link>
           </div>

@@ -1,21 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Noto_Sans_Devanagari } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import ScrollToTop from "@/components/ScrollToTop";
 import "./globals.css";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const notoDevanagari = Noto_Sans_Devanagari({
-  subsets: ["devanagari"],
-  variable: "--font-noto",
-  weight: ["400", "500", "600", "700", "800", "900"],
-  display: "swap",
-});
+import { supabase } from "@/lib/supabaseClient";
 
 const SITE_URL = "https://samadhaannews.in";
 
@@ -155,18 +142,39 @@ const structuredData = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  let adsenseClient = "";
+  try {
+    const { data } = await supabase
+      .from('settings')
+      .select('adsense_client')
+      .eq('id', 1)
+      .single();
+    if (data) {
+      adsenseClient = data.adsense_client || "";
+    }
+  } catch (err) {
+    console.error("Error fetching adsense_client in RootLayout:", err);
+  }
+
   return (
-    <html lang="hi" className={`${inter.variable} ${notoDevanagari.variable}`} suppressHydrationWarning>
+    <html lang="hi" className="font-sans" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#C1121F" />
         <link rel="alternate" type="application/rss+xml" href="/rss.xml" title="समाधान NEWS RSS" />
+        {adsenseClient && (
+          <script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
+            crossOrigin="anonymous"
+          />
+        )}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('samadhaan-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark');}catch(e){}})();`,

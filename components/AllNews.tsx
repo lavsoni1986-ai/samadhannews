@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { supabase, mapDbNewsToAppNews } from '@/lib/supabaseClient';
 import { News } from '@/lib/mockData';
-import { getStoredNews } from '@/lib/utils';
 import NewsCard from './NewsCard';
 import Footer from './Footer';
 
@@ -17,8 +17,23 @@ export default function AllNews({ title, subtitle }: AllNewsProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setLatest(getStoredNews());
-    setMounted(true);
+    async function fetchNews() {
+      try {
+        const { data, error } = await supabase
+          .from('news')
+          .select('*')
+          .order('published_at', { ascending: false });
+        if (error) throw error;
+        
+        const mapped = (data || []).map(item => mapDbNewsToAppNews(item));
+        setLatest(mapped);
+      } catch (err) {
+        console.error('Error fetching all news:', err);
+      } finally {
+        setMounted(true);
+      }
+    }
+    fetchNews();
   }, []);
 
   return (

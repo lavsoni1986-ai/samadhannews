@@ -87,10 +87,10 @@ export default function NewsCard({ news, variant = 'default' }: NewsCardProps) {
               {news.category}
             </span>
           </div>
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900 group-hover:text-red-600 transition-colors leading-tight">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 group-hover:text-red-600 transition-colors leading-tight line-clamp-3">
             {news.title}
           </h2>
-          <p className="text-base text-gray-600 mt-2 leading-relaxed line-clamp-2">{news.excerpt}</p>
+          <p className="text-sm md:text-[15px] text-gray-600 mt-2 leading-relaxed line-clamp-2 md:line-clamp-3">{news.excerpt}</p>
           <p className="text-sm text-gray-500 mt-2">{formatDateHindi(news.publishedAt)}</p>
         </article>
       </Link>
@@ -133,10 +133,10 @@ export default function NewsCard({ news, variant = 'default' }: NewsCardProps) {
           <span className={`inline-block px-2.5 py-1 rounded text-xs font-medium mb-2 ${categoryColors[news.category] || 'bg-gray-100 text-gray-700'}`}>
             {news.category}
           </span>
-          <h3 className="text-lg font-semibold text-gray-900 group-hover:text-red-600 transition-colors leading-snug">
+          <h3 className="text-base md:text-lg font-semibold text-gray-900 group-hover:text-red-600 transition-colors leading-snug line-clamp-3">
             {news.title}
           </h3>
-          <p className="text-sm text-gray-600 mt-2 leading-relaxed line-clamp-2">{news.excerpt}</p>
+          <p className="text-sm text-gray-600 mt-2 leading-relaxed line-clamp-2 md:line-clamp-3">{news.excerpt}</p>
           <p className="text-sm text-gray-500 mt-3">{formatDateHindi(news.publishedAt)}</p>
         </div>
       </article>

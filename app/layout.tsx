@@ -1,10 +1,18 @@
 import type { Metadata, Viewport } from "next";
+import { Noto_Sans_Devanagari } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import ScrollToTop from "@/components/ScrollToTop";
 import "./globals.css";
 import { supabase } from "@/lib/supabaseClient";
 
 const SITE_URL = "https://samadhaannews.in";
+
+const notoSansDevanagari = Noto_Sans_Devanagari({
+  subsets: ["devanagari"],
+  variable: "--font-noto",
+  display: "swap",
+  weight: ["300", "400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -162,7 +170,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="hi" className="font-sans" suppressHydrationWarning>
+    <html lang="hi" className={`${notoSansDevanagari.variable} font-sans`} suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />

@@ -110,9 +110,12 @@ export default function Navbar() {
       {/* Main Navbar */}
       <nav className="bg-white dark:bg-slate-900 border-b border-border dark:border-slate-700">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between items-center h-16 gap-4">
-            {/* Logo */}
-            <Logo />
+          <div className="flex justify-between items-center h-16 gap-3">
+            {/* Mobile: centered logo, desktop: normal brand block */}
+            <div className="md:hidden w-10" />
+            <div className="flex-1 flex justify-center md:justify-start md:flex-none">
+              <Logo />
+            </div>
 
             {/* Search - Desktop */}
             <div className="hidden md:flex flex-1 justify-center max-w-md">
@@ -121,7 +124,9 @@ export default function Navbar() {
 
             {/* Right actions */}
             <div className="flex items-center gap-1 sm:gap-2">
-              <DarkModeToggle />
+              <div className="hidden md:block">
+                <DarkModeToggle />
+              </div>
               <Link
                 href="/admin"
                 className="hidden sm:inline-flex px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-primary rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
@@ -143,7 +148,7 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Search */}
-        <div className="md:hidden px-4 pb-3">
+        <div className="md:hidden px-4 pb-3 pt-1">
           <Search />
         </div>
 

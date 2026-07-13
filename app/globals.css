@@ -51,6 +51,13 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-noto), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6, p, li, button, a, span {
+  font-family: var(--font-noto), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* English / Latin display text (NEWS, numbers) */
@@ -100,4 +107,22 @@ body {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+@keyframes breakingTicker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.breaking-ticker-track {
+  animation: breakingTicker 24s linear infinite;
+  will-change: transform;
+}
+
+.breaking-ticker-track:hover {
+  animation-play-state: paused;
 }

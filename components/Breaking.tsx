@@ -69,16 +69,13 @@ export default function BreakingNews() {
     <section className="bg-red-700 text-white">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row">
-          <div className="bg-red-900 px-4 py-2 flex items-center justify-center sm:w-40 font-bold">
+          <div className="bg-red-900 px-4 py-2 flex items-center justify-center sm:w-40 font-bold shrink-0">
             ⚡ ब्रेकिंग न्यूज़
           </div>
-          <div className="flex-1 overflow-x-auto">
-            <div className="flex items-center gap-8 py-2 px-4">
-              {breaking.map((item) => (
-                <BreakingNewsItem key={item.id} news={item} />
-              ))}
-              {breaking.map((item) => (
-                <BreakingNewsItem key={`${item.id}-dup`} news={item} />
+          <div className="flex-1 overflow-hidden">
+            <div className="breaking-ticker-track flex items-center gap-6 sm:gap-8 py-2 px-4 min-w-max">
+              {[...breaking, ...breaking].map((item, index) => (
+                <BreakingNewsItem key={`${item.id}-${index}`} news={item} />
               ))}
             </div>
           </div>

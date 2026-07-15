@@ -1,27 +1,33 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { categories } from "@/lib/mockData";
+import { supabase } from "@/lib/supabaseClient";
 import CategoryContent from "@/components/CategoryContent";
+
+export const dynamicParams = true;
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
-  return categories.map((cat) => ({ slug: cat.slug }));
+  const { data, error } = await supabase.from('categories').select('slug');
+  if (error || !data) return [];
+  return data.map((row: any) => ({ slug: row.slug }));
 }
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const category = categories.find((c) => c.slug === slug);
+  const { data } = await supabase.from('categories').select('*').eq('slug', slug).single();
 
-  if (!category) {
+  if (!data) {
     return { title: "पृष्ठ नहीं मिला | समाधान NEWS" };
   }
 
+  const category = data;
+
   return {
     title: `${category.name} समाचार – समाधान NEWS`,
-    description: `ताज़ा ${category.name} (${category.nameEn}) समाचार, अपडेट और विश्लेषण। खबर वही जो सही।`,
+    description: `ताज़ा ${category.name} (${category.name_en || category.nameEn || ''}) समाचार, अपडेट और विश्लेषण। खबर वही जो सही।`,
     alternates: { canonical: `https://samadhaannews.in/category/${slug}` },
     openGraph: {
       title: `${category.name} समाचार – समाधान NEWS`,
@@ -35,9 +41,9 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { slug } = await params;
-  const category = categories.find((c) => c.slug === slug);
+  const { data } = await supabase.from('categories').select('slug').eq('slug', slug).single();
 
-  if (!category) {
+  if (!data) {
     notFound();
   }
 

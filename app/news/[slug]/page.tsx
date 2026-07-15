@@ -1,25 +1,35 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { news, getCategoryName } from "@/lib/mockData";
+import { supabase, mapDbNewsToAppNews } from "@/lib/supabaseClient";
 import NewsContent from "@/components/NewsContent";
+
+export const dynamicParams = true;
 
 interface NewsPageProps {
   params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
-  return news.map((item) => ({
-    slug: item.slug,
-  }));
+  const { data, error } = await supabase
+    .from('news')
+    .select('slug')
+    .order('published_at', { ascending: false })
+    .limit(1000);
+
+  if (error || !data) return [];
+
+  return data.map((row: any) => ({ slug: row.slug }));
 }
 
 export async function generateMetadata({ params }: NewsPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const item = news.find((n) => n.slug === slug);
+  const { data } = await supabase.from('news').select('*').eq('slug', slug).single();
 
-  if (!item) {
+  if (!data) {
     return { title: "पृष्ठ नहीं मिला | समाधान NEWS" };
   }
+
+  const item = mapDbNewsToAppNews(data);
 
   return {
     title: `${item.title} | समाधान NEWS`,
@@ -45,9 +55,9 @@ export async function generateMetadata({ params }: NewsPageProps): Promise<Metad
 
 export default async function NewsPage({ params }: NewsPageProps) {
   const { slug } = await params;
-  const item = news.find((n) => n.slug === slug);
+  const { data } = await supabase.from('news').select('slug').eq('slug', slug).single();
 
-  if (!item) {
+  if (!data) {
     notFound();
   }
 

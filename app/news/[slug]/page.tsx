@@ -10,15 +10,9 @@ interface NewsPageProps {
 }
 
 export async function generateStaticParams() {
-  const { data, error } = await supabase
-    .from('news')
-    .select('slug')
-    .order('published_at', { ascending: false })
-    .limit(1000);
-
-  if (error || !data) return [];
-
-  return data.map((row: any) => ({ slug: row.slug }));
+  // Return empty array to prevent ENAMETOOLONG errors on long Devanagari slugs.
+  // dynamicParams = true ensures all pages render dynamically on-demand.
+  return [];
 }
 
 export async function generateMetadata({ params }: NewsPageProps): Promise<Metadata> {

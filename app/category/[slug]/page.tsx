@@ -10,9 +10,9 @@ interface CategoryPageProps {
 }
 
 export async function generateStaticParams() {
-  const { data, error } = await supabase.from('categories').select('slug');
-  if (error || !data) return [];
-  return data.map((row: any) => ({ slug: row.slug }));
+  // Return empty array to prevent build errors.
+  // dynamicParams = true ensures all pages render dynamically on-demand.
+  return [];
 }
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {

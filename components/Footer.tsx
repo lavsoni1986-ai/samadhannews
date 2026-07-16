@@ -12,7 +12,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand + About */}
           <div>
-            <Logo showTagline className="mb-4" />
+            <Logo showTagline className="mb-4" forceDark />
             <p className="text-gray-400 text-sm leading-relaxed mb-4">
               समाधान NEWS – भारत की प्रमुख हिंदी डिजिटल न्यूज़ प्लेटफ़ॉर्म। ताज़ा, निष्पक्ष और
               प्रामाणिक खबरें। खबर वही जो सही।

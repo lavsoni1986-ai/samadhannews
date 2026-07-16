@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { formatDateHindi } from '@/lib/utils';
+import Logo from '@/components/Logo';
 import { 
   LayoutDashboard, 
   Newspaper, 
@@ -90,11 +91,10 @@ function AdminLogin({ onLoginSuccess }: { onLoginSuccess: () => void }) {
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 w-full max-w-md border border-slate-700">
-        <div className="text-center mb-8">
-          <div className="inline-flex p-3 bg-red-100 rounded-full mb-3 text-red-600">
-            <Newspaper className="w-8 h-8" />
+        <div className="text-center mb-8 flex flex-col items-center">
+          <div className="mb-4">
+            <Logo size="lg" showTagline forceDark />
           </div>
-          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-2">समाधान NEWS</h1>
           <p className="text-slate-500 dark:text-slate-400">एडमिन लॉगिन पैनल</p>
         </div>
 

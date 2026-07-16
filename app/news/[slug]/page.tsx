@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { supabase, mapDbNewsToAppNews } from "@/lib/supabaseClient";
+import { createClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
+import { mapDbNewsToAppNews } from "@/lib/supabaseClient";
 import NewsContent from "@/components/NewsContent";
 
+export const dynamic = "force-dynamic";
 export const dynamicParams = true;
 
 interface NewsPageProps {
@@ -17,6 +20,8 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: NewsPageProps): Promise<Metadata> {
   const { slug } = await params;
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
   const { data } = await supabase.from('news').select('*').eq('slug', slug).single();
 
   if (!data) {
@@ -49,11 +54,57 @@ export async function generateMetadata({ params }: NewsPageProps): Promise<Metad
 
 export default async function NewsPage({ params }: NewsPageProps) {
   const { slug } = await params;
-  const { data } = await supabase.from('news').select('slug').eq('slug', slug).single();
+  const cookieStore = await cookies();
+  const supabaseServer = createClient(cookieStore);
 
-  if (!data) {
+  // 1. Fetch specific news by slug
+  const { data: dbNewsItem } = await supabaseServer
+    .from('news')
+    .select('*')
+    .eq('slug', slug)
+    .single();
+
+  if (!dbNewsItem) {
     notFound();
   }
 
-  return <NewsContent slug={slug} />;
+  const item = mapDbNewsToAppNews(dbNewsItem);
+
+  // 2. Fetch categories
+  const { data: cats } = await supabaseServer
+    .from('categories')
+    .select('slug, name, name_en');
+  const categoriesList = cats || [];
+
+  // 3. Fetch related news (same category, excluding current)
+  const { data: relItems } = await supabaseServer
+    .from('news')
+    .select('*')
+    .eq('category', item.category)
+    .neq('id', item.id)
+    .order('published_at', { ascending: false })
+    .limit(4);
+  const related = (relItems || []).map(r => mapDbNewsToAppNews(r));
+
+  // 4. Fetch settings for ads
+  const { data: setts } = await supabaseServer
+    .from('settings')
+    .select('adsense_client, adsense_slot_article, banner_link')
+    .eq('id', 1)
+    .single();
+  
+  const adSettings = setts ? {
+    adsense_client: setts.adsense_client || undefined,
+    adsense_slot_article: setts.adsense_slot_article || undefined,
+    banner_link: setts.banner_link || undefined,
+  } : {};
+
+  return (
+    <NewsContent 
+      item={item} 
+      categoriesList={categoriesList} 
+      related={related} 
+      adSettings={adSettings} 
+    />
+  );
 }

@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { supabase, mapDbNewsToAppNews } from '@/lib/supabaseClient';
 import { News } from '@/lib/mockData';
 import Footer from '@/components/Footer';
 
@@ -14,78 +13,16 @@ interface Category {
 
 interface CategoryContentProps {
   slug: string;
+  category: Category;
+  categoriesList: Category[];
+  initialNews: News[];
 }
 
 const ITEMS_PER_PAGE = 6;
 
-export default function CategoryContent({ slug }: CategoryContentProps) {
-  const [categoryNews, setCategoryNews] = useState<News[]>([]);
-  const [categoriesList, setCategoriesList] = useState<Category[]>([]);
-  const [mounted, setMounted] = useState(false);
+export default function CategoryContent({ slug, category, categoriesList, initialNews }: CategoryContentProps) {
   const [currentPage, setCurrentPage] = useState(1);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        // 1. Fetch categories
-        const { data: cats } = await supabase.from('categories').select('slug, name, name_en');
-        if (cats) setCategoriesList(cats);
-
-        // 2. Fetch news items under this category
-        const { data: newsItems } = await supabase
-          .from('news')
-          .select('*')
-          .eq('category', slug)
-          .order('published_at', { ascending: false });
-        if (newsItems) {
-          const mapped = newsItems.map(item => mapDbNewsToAppNews(item));
-          setCategoryNews(mapped);
-        }
-      } catch (err) {
-        console.error('Error fetching CategoryContent data:', err);
-      } finally {
-        setMounted(true);
-      }
-    }
-    fetchData();
-  }, [slug]);
-
-  const category = categoriesList.find((c: Category) => c.slug === slug);
-
-  if (!mounted) {
-    return (
-      <main className="min-h-screen bg-gray-50">
-        <div className="bg-white border-b">
-          <div className="max-w-7xl mx-auto px-4 py-8">
-            <div className="h-12 bg-gray-200 rounded w-48 animate-pulse"></div>
-          </div>
-        </div>
-        <section className="max-w-7xl mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="bg-white rounded-lg p-4 shadow animate-pulse">
-                <div className="aspect-video bg-gray-200 rounded mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-              </div>
-            ))}
-          </div>
-        </section>
-        <Footer />
-      </main>
-    );
-  }
-
-  if (!category) {
-    return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">श्रेणी नहीं मिली</h1>
-          <Link href="/" className="text-red-600 hover:underline">होम पर वापस जाएं</Link>
-        </div>
-      </main>
-    );
-  }
+  const categoryNews = initialNews;
 
   const totalPages = Math.ceil(categoryNews.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;

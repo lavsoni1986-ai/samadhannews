@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { formatDateTimeHindi } from '@/lib/utils';
 import MediaContent from '@/components/MediaContent';
 import Footer from '@/components/Footer';
-import { supabase, mapDbNewsToAppNews } from '@/lib/supabaseClient';
 import { News } from '@/lib/mockData';
 
 interface Category {
@@ -14,21 +13,26 @@ interface Category {
   name_en: string;
 }
 
-interface NewsContentProps {
-  slug: string;
-}
-
 interface AdSettings {
   adsense_client?: string;
   adsense_slot_article?: string;
   banner_link?: string;
 }
 
+interface NewsContentProps {
+  item: News;
+  categoriesList: Category[];
+  related: News[];
+  adSettings: AdSettings;
+}
+
 function AdSenseBanner({ client, slot, fallbackUrl }: { client?: string; slot?: string; fallbackUrl?: string }) {
   useEffect(() => {
     if (client && slot) {
       try {
-        ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+        const win = window as unknown as { adsbygoogle?: Record<string, unknown>[] };
+        win.adsbygoogle = win.adsbygoogle || [];
+        win.adsbygoogle.push({});
       } catch (e) {
         console.error('AdSense error:', e);
       }
@@ -63,94 +67,7 @@ function AdSenseBanner({ client, slot, fallbackUrl }: { client?: string; slot?: 
   return null;
 }
 
-export default function NewsContent({ slug }: NewsContentProps) {
-  const [item, setItem] = useState<News | null>(null);
-  const [categoriesList, setCategoriesList] = useState<Category[]>([]);
-  const [related, setRelated] = useState<News[]>([]);
-  const [adSettings, setAdSettings] = useState<AdSettings>({});
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        // 1. Fetch categories
-        const { data: cats } = await supabase.from('categories').select('slug, name, name_en');
-        if (cats) setCategoriesList(cats);
-
-        // 2. Fetch specific news by slug
-        const { data: newsItem } = await supabase
-          .from('news')
-          .select('*')
-          .eq('slug', slug)
-          .single();
-
-        if (newsItem) {
-          const mappedItem = mapDbNewsToAppNews(newsItem);
-          setItem(mappedItem);
-
-          // 3. Fetch related news (same category, excluding current)
-          const { data: relItems } = await supabase
-            .from('news')
-            .select('*')
-            .eq('category', mappedItem.category)
-            .neq('id', mappedItem.id)
-            .order('published_at', { ascending: false })
-            .limit(4);
-          if (relItems) {
-            const mappedRelated = relItems.map(r => mapDbNewsToAppNews(r));
-            setRelated(mappedRelated);
-          }
-        }
-
-        // 4. Fetch settings for ads
-        const { data: setts } = await supabase
-          .from('settings')
-          .select('adsense_client, adsense_slot_article, banner_link')
-          .eq('id', 1)
-          .single();
-        if (setts) {
-          setAdSettings({
-            adsense_client: setts.adsense_client || undefined,
-            adsense_slot_article: setts.adsense_slot_article || undefined,
-            banner_link: setts.banner_link || undefined,
-          });
-        }
-      } catch (err) {
-        console.error('Error fetching NewsContent data:', err);
-      } finally {
-        setMounted(true);
-      }
-    }
-
-    fetchData();
-  }, [slug]);
-
-  if (!mounted) {
-    return (
-      <main className="min-h-screen bg-gray-50">
-        <div className="max-w-3xl mx-auto px-4 py-8">
-          <div className="h-10 bg-gray-200 rounded w-3/4 mb-6 animate-pulse"></div>
-          <div className="h-64 bg-gray-200 rounded mb-8 animate-pulse"></div>
-          <div className="space-y-4">
-            <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  if (!item) {
-    return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">खबर नहीं मिली</h1>
-          <Link href="/" className="text-red-600 hover:underline">होम पर वापस जाएं</Link>
-        </div>
-      </main>
-    );
-  }
+export default function NewsContent({ item, categoriesList, related, adSettings }: NewsContentProps) {
 
   // Get Hindi category name
   const catName = categoriesList.find(c => c.slug === item.category)?.name || item.category;

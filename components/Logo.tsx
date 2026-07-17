@@ -10,23 +10,26 @@ interface LogoProps {
 
 /**
  * समाधान NEWS brand logo
- * Reusable across Navbar, Footer, About, Admin, etc.
- * Utilizes Next.js <Image> component with unoptimized=true and absolute w-full h-full scaling.
+ * Sanitized, conflict-free production component.
+ * Uses Next.js <Image> with unoptimized=true and transparent background vectors.
  */
 export default function Logo({
   className = "",
   showTagline = false,
   forceDark = false,
 }: LogoProps) {
+  // Combine classes into a single clean string
+  const linkClassName = `flex items-center justify-center bg-transparent ${className}`.trim().replace(/\s+/g, " ");
+
   return (
     <Link
       href="/"
-      className={`flex items-center justify-center bg-transparent ${className}`}
+      className={linkClassName}
       aria-label="समाधान NEWS – मुख्य पृष्ठ"
     >
       {showTagline ? (
         <>
-          {/* Mobile view: Dynamic fallback to logo-no-tagline for maximum readability on small viewports */}
+          {/* Mobile view: Dynamic crop to tagline-free logo for maximum readability */}
           <div className="md:hidden h-full w-full flex items-center justify-center bg-transparent">
             <Image
               src="/logo-no-tagline.png"
@@ -66,7 +69,7 @@ export default function Logo({
           </div>
         </>
       ) : (
-        /* Logo without tagline (3D metallic copper/gold works on both light & dark) */
+        /* Default: Logo without tagline (3D metallic copper/gold works on both light & dark) */
         <Image
           src="/logo-no-tagline.png"
           alt="समाधान NEWS"

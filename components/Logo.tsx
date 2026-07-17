@@ -33,7 +33,7 @@ export default function Logo({
               height={64}
               priority
               unoptimized={true}
-              className="h-full w-full object-contain bg-transparent"
+              className="h-full w-full object-contain bg-transparent drop-shadow-md brightness-110 contrast-125"
             />
           </div>
 
@@ -46,7 +46,7 @@ export default function Logo({
               height={80}
               priority
               unoptimized={true}
-              className="h-full w-full object-contain bg-transparent"
+              className="h-full w-full object-contain bg-transparent drop-shadow-md brightness-110 contrast-110"
             />
           </div>
 
@@ -59,7 +59,7 @@ export default function Logo({
               height={80}
               priority
               unoptimized={true}
-              className="h-full w-full object-contain bg-transparent"
+              className="h-full w-full object-contain bg-transparent drop-shadow-[0_2px_8px_rgba(255,255,255,0.2)] brightness-125 contrast-125"
             />
           </div>
         </>
@@ -73,7 +73,7 @@ export default function Logo({
             height={80}
             priority
             unoptimized={true}
-            className="h-full w-full object-contain bg-transparent"
+            className="h-full w-full object-contain bg-transparent drop-shadow-md brightness-110 contrast-125"
           />
         </div>
       )}

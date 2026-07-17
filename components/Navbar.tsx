@@ -110,11 +110,11 @@ export default function Navbar() {
       {/* Main Navbar */}
       <nav className="bg-white dark:bg-slate-900 border-b border-border dark:border-slate-700 overflow-visible">
         <div className="max-w-7xl mx-auto px-4 overflow-visible">
-          <div className="flex justify-between items-center h-16 gap-3 overflow-visible">
+          <div className="flex justify-between items-center h-20 md:h-24 gap-3 overflow-visible">
             {/* Mobile: centered logo, desktop: normal brand block */}
-            <div className="md:hidden w-10" />
+            <div className="md:hidden w-8" />
             <div className="flex-1 flex justify-center md:justify-start md:flex-none overflow-visible">
-              <div className="h-16 w-44 md:h-24 md:w-64 inline-block relative overflow-visible bg-transparent">
+              <div className="h-20 w-56 md:h-28 md:w-80 inline-block relative overflow-visible bg-transparent scale-110 md:scale-100 mt-2 md:mt-0">
                 <Logo size="lg" showTagline={true} className="h-full w-full object-contain bg-transparent transition-all hover:scale-105 duration-200 overflow-visible" />
               </div>
             </div>

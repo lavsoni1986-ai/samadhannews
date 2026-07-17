@@ -11,62 +11,57 @@ interface LogoProps {
 /**
  * समाधान NEWS brand logo
  * Reusable across Navbar, Footer, About, Admin, etc.
- * Utilizes Next.js <Image> component with responsive tagline cropping.
+ * Utilizes Next.js <Image> component with unoptimized=true and absolute w-full h-full scaling.
  */
 export default function Logo({
   className = "",
   showTagline = false,
-  size = "md",
   forceDark = false,
 }: LogoProps) {
-  // Master dimensions representing maximum bounds for aspect-ratio calculations
-  const dimensions = {
-    sm: { width: 120, height: 32 },
-    md: { width: 180, height: 48 },
-    lg: { width: 300, height: 80 },
-  }[size];
-
   return (
     <Link
       href="/"
-      className={`flex items-center justify-center ${className}`}
+      className={`flex items-center justify-center bg-transparent ${className}`}
       aria-label="समाधान NEWS – मुख्य पृष्ठ"
     >
       {showTagline ? (
         <>
           {/* Mobile view: Dynamic fallback to logo-no-tagline for maximum readability on small viewports */}
-          <div className="md:hidden h-full w-auto flex items-center">
+          <div className="md:hidden h-full w-full flex items-center justify-center bg-transparent">
             <Image
               src="/logo-no-tagline.png"
               alt="समाधान NEWS"
-              width={dimensions.width}
-              height={dimensions.height}
+              width={192}
+              height={64}
               priority
-              className="object-contain w-auto h-full"
+              unoptimized={true}
+              className="h-full w-full object-contain bg-transparent"
             />
           </div>
 
           {/* Desktop view: Light mode logo with tagline */}
-          <div className={forceDark ? "hidden" : "hidden md:block dark:md:hidden h-full w-auto"}>
+          <div className={forceDark ? "hidden" : "hidden md:block dark:md:hidden h-full w-full bg-transparent"}>
             <Image
               src="/logo.png"
               alt="समाधान NEWS"
-              width={dimensions.width}
-              height={dimensions.height}
+              width={240}
+              height={80}
               priority
-              className="object-contain w-auto h-full"
+              unoptimized={true}
+              className="h-full w-full object-contain bg-transparent"
             />
           </div>
 
           {/* Desktop view: Dark mode logo with tagline */}
-          <div className={forceDark ? "hidden md:block h-full w-auto" : "hidden dark:md:block h-full w-auto"}>
+          <div className={forceDark ? "hidden md:block h-full w-full bg-transparent" : "hidden dark:md:block h-full w-full bg-transparent"}>
             <Image
               src="/logo-dark.png"
               alt="समाधान NEWS"
-              width={dimensions.width}
-              height={dimensions.height}
+              width={240}
+              height={80}
               priority
-              className="object-contain w-auto h-full"
+              unoptimized={true}
+              className="h-full w-full object-contain bg-transparent"
             />
           </div>
         </>
@@ -75,10 +70,11 @@ export default function Logo({
         <Image
           src="/logo-no-tagline.png"
           alt="समाधान NEWS"
-          width={dimensions.width}
-          height={dimensions.height}
+          width={240}
+          height={80}
           priority
-          className="object-contain w-auto h-full"
+          unoptimized={true}
+          className="h-full w-full object-contain bg-transparent"
         />
       )}
     </Link>

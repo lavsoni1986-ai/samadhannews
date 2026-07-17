@@ -114,7 +114,7 @@ export default function Navbar() {
             {/* Mobile: centered logo, desktop: normal brand block */}
             <div className="md:hidden w-10" />
             <div className="flex-1 flex justify-center md:justify-start md:flex-none h-16 items-center overflow-visible">
-              <Logo size="lg" className="h-12 md:h-20 md:translate-y-2 transition-all hover:scale-105 duration-200 overflow-visible" />
+              <Logo size="lg" className="h-14 md:h-20 md:translate-y-2 transition-all hover:scale-105 duration-200 overflow-visible" />
             </div>
 
             {/* Search - Desktop */}

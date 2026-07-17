@@ -11,7 +11,7 @@ interface LogoProps {
 /**
  * समाधान NEWS brand logo
  * Reusable across Navbar, Footer, About, Admin, etc.
- * Utilizes Next.js <Image> component with h-full and w-auto to allow fluid scaling.
+ * Utilizes Next.js <Image> component with responsive tagline cropping.
  */
 export default function Logo({
   className = "",
@@ -34,8 +34,20 @@ export default function Logo({
     >
       {showTagline ? (
         <>
-          {/* Light mode logo with tagline */}
-          <div className={forceDark ? "hidden h-full w-auto" : "dark:hidden h-full w-auto"}>
+          {/* Mobile view: Dynamic fallback to logo-no-tagline for maximum readability on small viewports */}
+          <div className="md:hidden h-full w-auto flex items-center">
+            <Image
+              src="/logo-no-tagline.png"
+              alt="समाधान NEWS"
+              width={dimensions.width}
+              height={dimensions.height}
+              priority
+              className="object-contain w-auto h-full"
+            />
+          </div>
+
+          {/* Desktop view: Light mode logo with tagline */}
+          <div className={forceDark ? "hidden" : "hidden md:block dark:md:hidden h-full w-auto"}>
             <Image
               src="/logo.png"
               alt="समाधान NEWS"
@@ -45,8 +57,9 @@ export default function Logo({
               className="object-contain w-auto h-full"
             />
           </div>
-          {/* Dark mode logo with tagline */}
-          <div className={forceDark ? "block h-full w-auto" : "hidden dark:block h-full w-auto"}>
+
+          {/* Desktop view: Dark mode logo with tagline */}
+          <div className={forceDark ? "hidden md:block h-full w-auto" : "hidden dark:md:block h-full w-auto"}>
             <Image
               src="/logo-dark.png"
               alt="समाधान NEWS"

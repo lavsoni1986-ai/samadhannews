@@ -373,7 +373,7 @@ export default function AdminPage() {
       excerpt: newsForm.excerpt,
       content: newsForm.content,
       image: primaryImage,
-      images: newsForm.images.length > 0 ? newsForm.images : (newsForm.image ? [newsForm.image] : []),
+      images: Array.isArray(newsForm.images) && newsForm.images.length > 0 ? newsForm.images : [],
       media_type: newsForm.media_type,
       video_url: newsForm.media_type === 'video' ? newsForm.video_url : null,
       youtube_id: newsForm.media_type === 'video' ? newsForm.youtube_id : null,

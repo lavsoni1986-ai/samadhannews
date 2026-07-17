@@ -46,8 +46,6 @@ export default function TiptapEditor({ value, onChange, placeholder }: TiptapEdi
     extensions: [
       StarterKit.configure({
         heading: { levels: [2, 3] },
-        bulletList: { keepMarks: true },
-        orderedList: { keepMarks: true },
       }),
       Underline,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),

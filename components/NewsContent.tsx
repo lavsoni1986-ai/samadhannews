@@ -304,7 +304,9 @@ export default function NewsContent({ item, categoriesList, related, adSettings 
         )}
 
         {/* Content */}
-        <div className="prose prose-lg max-w-none text-gray-800 dark:text-gray-200"
+        <div 
+          className="prose prose-lg max-w-none text-gray-800 dark:text-gray-200"
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: item.content }}
         />
 

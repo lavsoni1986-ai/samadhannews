@@ -17,6 +17,7 @@ export interface News {
   excerpt: string;
   content: string;
   image: string;
+  images?: string[];
   mediaType: 'image' | 'video';
   videoUrl?: string;
   youtubeId?: string;

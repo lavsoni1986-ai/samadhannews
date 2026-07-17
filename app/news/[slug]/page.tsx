@@ -88,17 +88,21 @@ export default async function NewsPage({ params }: NewsPageProps) {
     .limit(4);
   const related = (relItems || []).map(r => mapDbNewsToAppNews(r));
 
-  // 4. Fetch settings for ads
+  // 4. Fetch settings for ads (including Feature Pack-1 local banner slots)
   const { data: setts } = await supabaseServer
     .from('settings')
-    .select('adsense_client, adsense_slot_article, banner_link')
+    .select('adsense_client, adsense_slot_article, banner_link, banner_top_url, banner_top_link, banner_article_url, banner_article_link')
     .eq('id', 1)
     .single();
-  
+
   const adSettings = setts ? {
     adsense_client: setts.adsense_client || undefined,
     adsense_slot_article: setts.adsense_slot_article || undefined,
     banner_link: setts.banner_link || undefined,
+    banner_top_url: setts.banner_top_url || undefined,
+    banner_top_link: setts.banner_top_link || undefined,
+    banner_article_url: setts.banner_article_url || undefined,
+    banner_article_link: setts.banner_article_link || undefined,
   } : {};
 
   return (

@@ -117,3 +117,19 @@ INSERT INTO public.news (
     TRUE
 )
 ON CONFLICT (slug) DO NOTHING;
+
+-- ============================================================
+-- MIGRATION: Feature Pack-1 (Approved)
+-- Run these statements in Supabase Dashboard → SQL Editor
+-- ============================================================
+
+-- A. Add multi-image gallery column to news table (backward-compatible)
+ALTER TABLE public.news
+  ADD COLUMN IF NOT EXISTS images TEXT[] DEFAULT ARRAY[]::TEXT[];
+
+-- B. Add 4-slot local banner ad manager columns to settings table
+ALTER TABLE public.settings
+  ADD COLUMN IF NOT EXISTS banner_top_url TEXT,
+  ADD COLUMN IF NOT EXISTS banner_top_link TEXT,
+  ADD COLUMN IF NOT EXISTS banner_article_url TEXT,
+  ADD COLUMN IF NOT EXISTS banner_article_link TEXT;

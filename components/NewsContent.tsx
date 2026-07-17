@@ -17,6 +17,11 @@ interface AdSettings {
   adsense_client?: string;
   adsense_slot_article?: string;
   banner_link?: string;
+  // Feature Pack-1: Local Direct Ad Slots
+  banner_top_url?: string;
+  banner_top_link?: string;
+  banner_article_url?: string;
+  banner_article_link?: string;
 }
 
 interface NewsContentProps {
@@ -149,6 +154,24 @@ export default function NewsContent({ item, categoriesList, related, adSettings 
       </nav>
 
       <article className="max-w-3xl mx-auto px-4 py-8">
+        {/* Local Ad SLOT 1: Top Banner */}
+        {adSettings.banner_top_url && (
+          <div className="mb-6 flex justify-center w-full">
+            <a
+              href={adSettings.banner_top_link || '#'}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="block w-full max-w-3xl rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+            >
+              <img
+                src={adSettings.banner_top_url}
+                alt="विज्ञापन"
+                className="w-full h-auto object-cover"
+              />
+            </a>
+          </div>
+        )}
+
         {/* Header */}
         <header className="mb-6">
           <div className="flex items-center gap-2 mb-4">
@@ -232,21 +255,58 @@ export default function NewsContent({ item, categoriesList, related, adSettings 
           </div>
         )}
 
-        {/* Dynamic Ad placement inside layout */}
-        {(adSettings.adsense_client || adSettings.banner_link) && (
-          <AdSenseBanner 
-            client={adSettings.adsense_client} 
-            slot={adSettings.adsense_slot_article} 
-            fallbackUrl={adSettings.banner_link} 
+        {/* Multi-Image Gallery Carousel — Feature Pack-1 */}
+        {item.images && item.images.length > 1 && (
+          <div className="mb-8">
+            <h3 className="text-base font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+              <span className="w-1 h-4 bg-red-600 rounded-full inline-block" />
+              फ़ोटो गैलरी
+            </h3>
+            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 scrollbar-hide">
+              {item.images.map((imgUrl, idx) => (
+                <div
+                  key={idx}
+                  className="snap-start shrink-0 w-64 h-44 md:w-80 md:h-52 rounded-xl overflow-hidden border border-gray-200 dark:border-slate-700 shadow-sm bg-gray-100 dark:bg-slate-800"
+                >
+                  <img
+                    src={imgUrl}
+                    alt={`${item.title} - चित्र ${idx + 1}`}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Local Ad SLOT 2: In-Article Banner */}
+        {adSettings.banner_article_url ? (
+          <div className="my-6 flex justify-center w-full">
+            <a
+              href={adSettings.banner_article_link || '#'}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="block w-full max-w-2xl rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+            >
+              <img
+                src={adSettings.banner_article_url}
+                alt="विज्ञापन"
+                className="w-full h-auto object-cover"
+              />
+            </a>
+          </div>
+        ) : (adSettings.adsense_client || adSettings.banner_link) && (
+          <AdSenseBanner
+            client={adSettings.adsense_client}
+            slot={adSettings.adsense_slot_article}
+            fallbackUrl={adSettings.banner_link}
           />
         )}
 
         {/* Content */}
-        <div className="prose prose-lg max-w-none text-gray-800 dark:text-gray-200">
-          {item.content.split('\n\n').map((para, i) => (
-            <p key={i} className="mb-5 leading-7">{para}</p>
-          ))}
-        </div>
+        <div className="prose prose-lg max-w-none text-gray-800 dark:text-gray-200"
+          dangerouslySetInnerHTML={{ __html: item.content }}
+        />
 
         {/* Tags */}
         <div className="mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">

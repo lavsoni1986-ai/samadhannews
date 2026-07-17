@@ -1,27 +1,33 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { supabase } from '@/lib/supabaseClient';
 import { formatDateHindi } from '@/lib/utils';
 import Logo from '@/components/Logo';
-import { 
-  LayoutDashboard, 
-  Newspaper, 
-  FolderTree, 
-  Image as ImageIcon, 
-  Settings as SettingsIcon, 
-  DatabaseBackup, 
-  Upload, 
-  Trash2, 
-  Edit3, 
-  Plus, 
-  LogOut, 
+import {
+  LayoutDashboard,
+  Newspaper,
+  FolderTree,
+  Image as ImageIcon,
+  Settings as SettingsIcon,
+  DatabaseBackup,
+  Upload,
+  Trash2,
+  Edit3,
+  Plus,
+  LogOut,
   ExternalLink,
   Loader2,
   CheckCircle,
-  AlertTriangle
+  AlertTriangle,
+  X,
+  Link as LinkIcon,
 } from 'lucide-react';
+
+// Dynamic import for Tiptap (avoids SSR issues)
+const TiptapEditor = dynamic(() => import('@/components/TiptapEditor'), { ssr: false });
 
 interface Category {
   slug: string;
@@ -37,6 +43,7 @@ interface News {
   excerpt: string;
   content: string;
   image: string;
+  images: string[];
   media_type: 'image' | 'video';
   video_url?: string;
   youtube_id?: string;
@@ -54,6 +61,23 @@ interface Settings {
   youtube_live_id: string;
   cloudinary_cloud_name: string;
   cloudinary_upload_preset: string;
+  // Feature Pack-1: Local Direct Ad Slots
+  banner_top_url: string;
+  banner_top_link: string;
+  banner_article_url: string;
+  banner_article_link: string;
+}
+
+// Helper: Extract YouTube video ID from full URL or raw ID
+function extractYoutubeId(input: string): string {
+  const trimmed = input.trim();
+  // Already a raw ID (11 chars, no slashes)
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+  // youtube.com/watch?v=XXXX or youtu.be/XXXX or embed/XXXX
+  const match = trimmed.match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+  );
+  return match ? match[1] : trimmed;
 }
 
 // -------------------------------------------------------------
@@ -179,6 +203,11 @@ export default function AdminPage() {
     youtube_live_id: '',
     cloudinary_cloud_name: '',
     cloudinary_upload_preset: '',
+    // Feature Pack-1: Local Direct Ad Slots
+    banner_top_url: '',
+    banner_top_link: '',
+    banner_article_url: '',
+    banner_article_link: '',
   });
 
   // Loading and notifications
@@ -192,6 +221,7 @@ export default function AdminPage() {
     excerpt: '',
     content: '',
     image: '',
+    images: [] as string[],
     media_type: 'image' as 'image' | 'video',
     video_url: '',
     youtube_id: '',
@@ -200,6 +230,7 @@ export default function AdminPage() {
     published_at: new Date().toISOString().substring(0, 16),
     is_breaking: false,
   });
+  const [uploadingImages, setUploadingImages] = useState(false);
   const [editingNewsId, setEditingNewsId] = useState<string | null>(null);
   const [newsSearch, setNewsSearch] = useState('');
   const [newsFilterCat, setNewsFilterCat] = useState('all');
@@ -290,6 +321,10 @@ export default function AdminPage() {
           youtube_live_id: setts.youtube_live_id || '',
           cloudinary_cloud_name: setts.cloudinary_cloud_name || '',
           cloudinary_upload_preset: setts.cloudinary_upload_preset || '',
+          banner_top_url: setts.banner_top_url || '',
+          banner_top_link: setts.banner_top_link || '',
+          banner_article_url: setts.banner_article_url || '',
+          banner_article_link: setts.banner_article_link || '',
         });
       }
     } catch (err: any) {
@@ -330,12 +365,15 @@ export default function AdminPage() {
     setLoading(true);
 
     const slugToUse = newsForm.slug ? generateSlug(newsForm.slug) : generateSlug(newsForm.title);
+    // Merge images[] - use images array; first image also goes to legacy `image` column
+    const primaryImage = newsForm.images[0] || newsForm.image || 'https://picsum.photos/seed/news/800/450';
     const dbPayload = {
       title: newsForm.title,
       slug: slugToUse,
       excerpt: newsForm.excerpt,
       content: newsForm.content,
-      image: newsForm.image || 'https://picsum.photos/seed/news/800/450',
+      image: primaryImage,
+      images: newsForm.images.length > 0 ? newsForm.images : (newsForm.image ? [newsForm.image] : []),
       media_type: newsForm.media_type,
       video_url: newsForm.media_type === 'video' ? newsForm.video_url : null,
       youtube_id: newsForm.media_type === 'video' ? newsForm.youtube_id : null,
@@ -368,6 +406,7 @@ export default function AdminPage() {
         excerpt: '',
         content: '',
         image: '',
+        images: [],
         media_type: 'image',
         video_url: '',
         youtube_id: '',
@@ -393,6 +432,7 @@ export default function AdminPage() {
       excerpt: item.excerpt,
       content: item.content,
       image: item.image,
+      images: Array.isArray(item.images) ? item.images : (item.image ? [item.image] : []),
       media_type: item.media_type,
       video_url: item.video_url || '',
       youtube_id: item.youtube_id || '',
@@ -492,7 +532,7 @@ export default function AdminPage() {
   }
 
   // -------------------------------------------------------------
-  // Cloudinary Media Upload
+  // Cloudinary Media Upload (single file - Media tab)
   // -------------------------------------------------------------
   async function handleCloudinaryUpload(e: React.FormEvent) {
     e.preventDefault();
@@ -532,13 +572,63 @@ export default function AdminPage() {
       setUploadedUrl(absoluteUrl);
       setSessionUploadedUrls(prev => [absoluteUrl, ...prev]);
       showNotification('success', 'फ़ाइल सफलतापूर्वक क्लाउड पर अपलोड की गई।');
-      
+
       // Auto-set image field in news CRUD form to this uploaded URL
-      setNewsForm(prev => ({ ...prev, image: absoluteUrl }));
+      setNewsForm(prev => ({ ...prev, image: absoluteUrl, images: [absoluteUrl, ...prev.images] }));
     } catch (err: any) {
       showNotification('error', 'अपलोड विफल: ' + err.message);
     } finally {
       setUploadingMedia(false);
+    }
+  }
+
+  // Multi-image upload for News form (sequential Cloudinary uploads)
+  async function handleMultiImageUpload(files: FileList) {
+    const cloudName = settings.cloudinary_cloud_name;
+    const preset = settings.cloudinary_upload_preset;
+
+    if (!cloudName || !preset) {
+      showNotification('error', 'क्लाउडिनरी क्रेडेंशियल सेटिंग्स टैब में सेट नहीं हैं।');
+      return;
+    }
+
+    setUploadingImages(true);
+    const uploaded: string[] = [];
+
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const formData = new FormData();
+        formData.append('file', files[i]);
+        formData.append('upload_preset', preset);
+
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!res.ok) {
+          const errJson = await res.json().catch(() => ({}));
+          throw new Error(errJson.error?.message || `HTTP error ${res.status}`);
+        }
+
+        const json = await res.json();
+        uploaded.push(json.secure_url);
+      }
+
+      // Merge with existing images; first uploaded becomes primary if image is empty
+      setNewsForm(prev => {
+        const merged = [...prev.images, ...uploaded];
+        return {
+          ...prev,
+          images: merged,
+          image: prev.image || merged[0] || prev.image,
+        };
+      });
+      showNotification('success', `${uploaded.length} छवियाँ सफलतापूर्वक अपलोड हो गईं।`);
+    } catch (err: any) {
+      showNotification('error', 'मल्टी-इमेज अपलोड विफल: ' + err.message);
+    } finally {
+      setUploadingImages(false);
     }
   }
 
@@ -558,6 +648,11 @@ export default function AdminPage() {
       youtube_live_id: settings.youtube_live_id,
       cloudinary_cloud_name: settings.cloudinary_cloud_name,
       cloudinary_upload_preset: settings.cloudinary_upload_preset,
+      // Feature Pack-1: Local Direct Ad Slots
+      banner_top_url: settings.banner_top_url,
+      banner_top_link: settings.banner_top_link,
+      banner_article_url: settings.banner_article_url,
+      banner_article_link: settings.banner_article_link,
     };
 
     try {
@@ -888,6 +983,7 @@ export default function AdminPage() {
                         excerpt: '',
                         content: '',
                         image: '',
+                        images: [],
                         media_type: 'image',
                         video_url: '',
                         youtube_id: '',
@@ -988,14 +1084,20 @@ export default function AdminPage() {
                   {newsForm.media_type === 'video' && (
                     <>
                       <div>
-                        <label className="block text-sm font-bold mb-1.5">यूट्यूब वीडियो ID (उदा: dQw4w9WgXcQ)</label>
-                        <input 
-                          type="text" 
+                        <label className="block text-sm font-bold mb-1.5">यूट्यूब वीडियो ID या पूरा URL</label>
+                        <input
+                          type="text"
                           value={newsForm.youtube_id}
-                          onChange={(e) => setNewsForm(prev => ({ ...prev, youtube_id: e.target.value }))}
+                          onChange={(e) => {
+                            const parsed = extractYoutubeId(e.target.value);
+                            setNewsForm(prev => ({ ...prev, youtube_id: parsed }));
+                          }}
                           className="w-full px-4 py-2 bg-white dark:bg-slate-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 text-slate-900 dark:text-white"
-                          placeholder="dQw4w9WgXcQ"
+                          placeholder="https://youtube.com/watch?v=dQw4w9WgXcQ या dQw4w9WgXcQ"
                         />
+                        {newsForm.youtube_id && (
+                          <p className="text-xs text-green-600 mt-1">✓ ID: {newsForm.youtube_id}</p>
+                        )}
                       </div>
 
                       <div>
@@ -1046,14 +1148,84 @@ export default function AdminPage() {
 
                 <div>
                   <label className="block text-sm font-bold mb-1.5">पूरी सामग्री (Full Content) *</label>
-                  <textarea 
-                    required
-                    rows={6}
+                  <TiptapEditor
                     value={newsForm.content}
-                    onChange={(e) => setNewsForm(prev => ({ ...prev, content: e.target.value }))}
-                    className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 text-slate-900 dark:text-white font-sans"
+                    onChange={(html) => setNewsForm(prev => ({ ...prev, content: html }))}
                     placeholder="पूरी समाचार रिपोर्ट विस्तार में लिखें..."
                   />
+                </div>
+
+                {/* Multi-Image Gallery Upload */}
+                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-2xl p-5 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="w-5 h-5 text-red-500" />
+                    <h4 className="font-bold text-sm">इमेज गैलरी (Multi-Image Upload)</h4>
+                    {uploadingImages && <Loader2 className="w-4 h-4 animate-spin text-red-500" />}
+                  </div>
+
+                  {/* Thumbnail Previews */}
+                  {newsForm.images.length > 0 && (
+                    <div className="flex flex-wrap gap-3">
+                      {newsForm.images.map((url, idx) => (
+                        <div key={idx} className="relative group">
+                          <img
+                            src={url}
+                            alt={`image-${idx + 1}`}
+                            className="w-20 h-20 object-cover rounded-xl border border-slate-200 dark:border-slate-600 shadow-sm"
+                          />
+                          {idx === 0 && (
+                            <span className="absolute -top-1.5 -left-1.5 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">PRIMARY</span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setNewsForm(prev => {
+                                const updated = prev.images.filter((_, i) => i !== idx);
+                                return { ...prev, images: updated, image: updated[0] || '' };
+                              })
+                            }
+                            className="absolute -top-1.5 -right-1.5 bg-slate-800 text-white rounded-full w-5 h-5 hidden group-hover:flex items-center justify-center hover:bg-red-600 transition-colors cursor-pointer"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Upload Input */}
+                  <div className="flex items-center gap-3">
+                    <label className="flex-1 cursor-pointer">
+                      <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl px-4 py-3 text-center hover:border-red-400 transition-colors">
+                        <span className="text-sm text-slate-500">
+                          {uploadingImages ? 'अपलोड हो रहा है...' : '📁 छवियाँ चुनें (एक साथ कई)'}
+                        </span>
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        disabled={uploadingImages}
+                        className="sr-only"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files.length > 0) {
+                            handleMultiImageUpload(e.target.files);
+                            e.target.value = '';
+                          }
+                        }}
+                      />
+                    </label>
+                    {newsForm.images.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setNewsForm(prev => ({ ...prev, images: [], image: '' }))}
+                        className="px-3 py-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-sm hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
+                      >
+                        सभी हटाएं
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-400">पहली छवि Primary Image बनती है। Cloudinary क्रेडेंशियल Settings टैब में दर्ज करें।</p>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -1447,6 +1619,89 @@ export default function AdminPage() {
                           placeholder="unsigned-preset-name"
                         />
                       </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Feature Pack-1: Local Direct Ad Slots Manager */}
+                <div className="space-y-4 md:col-span-2">
+                  <h3 className="font-bold text-lg border-b pb-2 text-red-600 dark:text-red-400 flex items-center gap-2">
+                    <LinkIcon className="w-5 h-5" />
+                    स्थानीय डायरेक्ट विज्ञापन स्लॉट्स (Local Direct Ad Manager)
+                  </h3>
+                  <p className="text-xs text-slate-500 -mt-2">ये स्लॉट्स Google AdSense की जगह आपके बैनर दिखाते हैं। खाली छोड़ने पर AdSense फॉलबैक होगा।</p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* SLOT 1: Top Banner */}
+                    <div className="bg-white dark:bg-slate-800 border border-orange-200 dark:border-orange-900/30 rounded-xl p-4 space-y-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300 text-xs font-bold px-2 py-0.5 rounded-full">SLOT 1</span>
+                        <span className="font-bold text-sm">टॉप बैनर (लेख पृष्ठ शीर्ष)</span>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold mb-1">बैनर इमेज URL (banner_top_url)</label>
+                        <input
+                          type="text"
+                          value={settings.banner_top_url}
+                          onChange={(e) => setSettings(prev => ({ ...prev, banner_top_url: e.target.value }))}
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm text-slate-900 dark:text-white"
+                          placeholder="https://res.cloudinary.com/.../banner.jpg"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold mb-1">क्लिक रीडायरेक्ट URL (banner_top_link)</label>
+                        <input
+                          type="text"
+                          value={settings.banner_top_link}
+                          onChange={(e) => setSettings(prev => ({ ...prev, banner_top_link: e.target.value }))}
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm text-slate-900 dark:text-white"
+                          placeholder="https://bharatosai.academy"
+                        />
+                      </div>
+                      {settings.banner_top_url && (
+                        <img
+                          src={settings.banner_top_url}
+                          alt="Top Banner Preview"
+                          className="w-full h-16 object-cover rounded-lg border border-orange-200"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      )}
+                    </div>
+
+                    {/* SLOT 2: In-Article Banner */}
+                    <div className="bg-white dark:bg-slate-800 border border-purple-200 dark:border-purple-900/30 rounded-xl p-4 space-y-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 text-xs font-bold px-2 py-0.5 rounded-full">SLOT 2</span>
+                        <span className="font-bold text-sm">मध्य-लेख बैनर (In-Article)</span>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold mb-1">बैनर इमेज URL (banner_article_url)</label>
+                        <input
+                          type="text"
+                          value={settings.banner_article_url}
+                          onChange={(e) => setSettings(prev => ({ ...prev, banner_article_url: e.target.value }))}
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm text-slate-900 dark:text-white"
+                          placeholder="https://res.cloudinary.com/.../article-banner.jpg"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold mb-1">क्लिक रीडायरेक्ट URL (banner_article_link)</label>
+                        <input
+                          type="text"
+                          value={settings.banner_article_link}
+                          onChange={(e) => setSettings(prev => ({ ...prev, banner_article_link: e.target.value }))}
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm text-slate-900 dark:text-white"
+                          placeholder="https://bharatosai.academy"
+                        />
+                      </div>
+                      {settings.banner_article_url && (
+                        <img
+                          src={settings.banner_article_url}
+                          alt="Article Banner Preview"
+                          className="w-full h-16 object-cover rounded-lg border border-purple-200"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>

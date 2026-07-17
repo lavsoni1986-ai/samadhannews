@@ -5,7 +5,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import Link from '@tiptap/extension-link';
-import { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useMemo } from 'react';
 
 interface TiptapEditorProps {
   value: string;
@@ -42,22 +42,24 @@ function ToolbarButton({
 }
 
 export default function TiptapEditor({ value, onChange, placeholder }: TiptapEditorProps) {
+  const extensions = React.useMemo(() => [
+    StarterKit.configure({
+      heading: { levels: [2, 3] },
+    }),
+    Underline,
+    TextAlign.configure({ types: ['heading', 'paragraph'] }),
+    Link.configure({
+      openOnClick: false,
+      HTMLAttributes: {
+        class: 'text-red-600 underline hover:text-red-800',
+        rel: 'noopener noreferrer',
+        target: '_blank',
+      },
+    }),
+  ], []);
+
   const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        heading: { levels: [2, 3] },
-      }),
-      Underline,
-      TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'text-red-600 underline hover:text-red-800',
-          rel: 'noopener noreferrer',
-          target: '_blank',
-        },
-      }),
-    ],
+    extensions,
     content: value || '',
     editorProps: {
       attributes: {

@@ -365,15 +365,16 @@ export default function AdminPage() {
     setLoading(true);
 
     const slugToUse = newsForm.slug ? generateSlug(newsForm.slug) : generateSlug(newsForm.title);
-    // Merge images[] - use images array; first image also goes to legacy `image` column
-    const primaryImage = newsForm.images[0] || newsForm.image || 'https://picsum.photos/seed/news/800/450';
+    const validImages = Array.isArray(newsForm.images) ? newsForm.images.filter(img => typeof img === 'string') : [];
+    const primaryImage = validImages.length > 0 ? validImages[0] : (typeof newsForm.image === 'string' && newsForm.image ? newsForm.image : 'https://picsum.photos/seed/news/800/450');
+    
     const dbPayload = {
       title: newsForm.title,
       slug: slugToUse,
       excerpt: newsForm.excerpt,
       content: newsForm.content,
-      image: primaryImage,
-      images: Array.isArray(newsForm.images) && newsForm.images.length > 0 ? newsForm.images : [],
+      image: String(primaryImage),
+      images: validImages,
       media_type: newsForm.media_type,
       video_url: newsForm.media_type === 'video' ? newsForm.video_url : null,
       youtube_id: newsForm.media_type === 'video' ? newsForm.youtube_id : null,

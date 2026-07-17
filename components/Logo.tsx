@@ -8,17 +8,12 @@ interface LogoProps {
   forceDark?: boolean;
 }
 
-/**
- * समाधान NEWS brand logo
- * Sanitized, conflict-free production component.
- * Uses Next.js <Image> with unoptimized=true and transparent background vectors.
- */
 export default function Logo({
   className = "",
   showTagline = false,
   forceDark = false,
 }: LogoProps) {
-  // Combine classes into a single clean string
+  // Combine classes into a single clean string cleanly
   const linkClassName = `flex items-center justify-center bg-transparent ${className}`.trim().replace(/\s+/g, " ");
 
   return (
@@ -69,16 +64,18 @@ export default function Logo({
           </div>
         </>
       ) : (
-        /* Default: Logo without tagline (3D metallic copper/gold works on both light & dark) */
-        <Image
-          src="/logo-no-tagline.png"
-          alt="समाधान NEWS"
-          width={240}
-          height={80}
-          priority
-          unoptimized={true}
-          className="h-full w-full object-contain bg-transparent"
-        />
+        /* Default: Logo without tagline */
+        <div className="h-full w-full flex items-center justify-center bg-transparent">
+          <Image
+            src="/logo-no-tagline.png"
+            alt="समाधान NEWS"
+            width={240}
+            height={80}
+            priority
+            unoptimized={true}
+            className="h-full w-full object-contain bg-transparent"
+          />
+        </div>
       )}
     </Link>
   );

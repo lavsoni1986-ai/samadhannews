@@ -20,9 +20,10 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
-  const { data } = await supabase.from('categories').select('*').eq('slug', slug).single();
+  const { data } = await supabase.from('categories').select('*').eq('slug', decodedSlug).single();
 
   if (!data) {
     return { title: "पृष्ठ नहीं मिला | समाधान NEWS" };
@@ -46,13 +47,14 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
   const cookieStore = await cookies();
   const supabaseServer = createClient(cookieStore);
 
   // 1. Fetch categories
   const { data: cats } = await supabaseServer.from('categories').select('slug, name, name_en');
   const categoriesList = cats || [];
-  const category = categoriesList.find((c: { slug: string; name: string; name_en: string }) => c.slug === slug);
+  const category = categoriesList.find((c: { slug: string; name: string; name_en: string }) => c.slug === decodedSlug);
 
   if (!category) {
     notFound();
@@ -62,14 +64,14 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   const { data: newsItems } = await supabaseServer
     .from('news')
     .select('*')
-    .eq('category', slug)
+    .eq('category', decodedSlug)
     .order('published_at', { ascending: false });
   
   const categoryNews = (newsItems || []).map(item => mapDbNewsToAppNews(item));
 
   return (
     <CategoryContent
-      slug={slug}
+      slug={decodedSlug}
       category={category}
       categoriesList={categoriesList}
       initialNews={categoryNews}

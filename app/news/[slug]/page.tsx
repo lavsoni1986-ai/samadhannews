@@ -20,9 +20,10 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: NewsPageProps): Promise<Metadata> {
   const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
-  const { data } = await supabase.from('news').select('*').eq('slug', slug).single();
+  const { data } = await supabase.from('news').select('*').eq('slug', decodedSlug).single();
 
   if (!data) {
     return { title: "पृष्ठ नहीं मिला | समाधान NEWS" };
@@ -54,6 +55,7 @@ export async function generateMetadata({ params }: NewsPageProps): Promise<Metad
 
 export default async function NewsPage({ params }: NewsPageProps) {
   const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
   const cookieStore = await cookies();
   const supabaseServer = createClient(cookieStore);
 
@@ -61,7 +63,7 @@ export default async function NewsPage({ params }: NewsPageProps) {
   const { data: dbNewsItem } = await supabaseServer
     .from('news')
     .select('*')
-    .eq('slug', slug)
+    .eq('slug', decodedSlug)
     .single();
 
   if (!dbNewsItem) {

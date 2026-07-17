@@ -108,13 +108,13 @@ export default function Navbar() {
       </div>
 
       {/* Main Navbar */}
-      <nav className="bg-white dark:bg-slate-900 border-b border-border dark:border-slate-700">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between items-center h-16 gap-3">
+      <nav className="bg-white dark:bg-slate-900 border-b border-border dark:border-slate-700 overflow-visible">
+        <div className="max-w-7xl mx-auto px-4 overflow-visible">
+          <div className="flex justify-between items-center h-16 gap-3 overflow-visible">
             {/* Mobile: centered logo, desktop: normal brand block */}
             <div className="md:hidden w-10" />
-            <div className="flex-1 flex justify-center md:justify-start md:flex-none">
-              <Logo />
+            <div className="flex-1 flex justify-center md:justify-start md:flex-none h-16 items-center overflow-visible">
+              <Logo size="lg" className="h-12 md:h-20 md:translate-y-2 transition-all hover:scale-105 duration-200 overflow-visible" />
             </div>
 
             {/* Search - Desktop */}

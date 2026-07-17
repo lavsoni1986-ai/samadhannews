@@ -19,7 +19,7 @@ export default function Footer() {
             </p>
             <p className="text-gray-500 text-sm flex items-center gap-2">
               <MapPin className="w-4 h-4 text-primary shrink-0" />
-              भोपाल, मध्य प्रदेश, भारत
+              शहडोल, मध्य प्रदेश, भारत
             </p>
           </div>
 

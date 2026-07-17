@@ -18,7 +18,7 @@ export default function WeatherWidget() {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <MapPin className="w-4 h-4 text-primary" />
-          भोपाल, म.प्र.
+          शहडोल, म.प्र.
         </div>
         <span className="text-2xl font-bold text-gray-900 dark:text-white">24°</span>
       </div>

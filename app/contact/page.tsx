@@ -25,7 +25,7 @@ export default function ContactPage() {
           <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-border dark:border-slate-700 p-6 text-center">
             <MapPin className="w-8 h-8 text-primary mx-auto mb-3" />
             <h3 className="font-semibold mb-2 text-gray-900 dark:text-white">पता</h3>
-            <p className="text-gray-600 dark:text-gray-300">भोपाल, मध्य प्रदेश, भारत</p>
+            <p className="text-gray-600 dark:text-gray-300">शहडोल, मध्य प्रदेश, भारत</p>
           </div>
           <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-border dark:border-slate-700 p-6 text-center">
             <Mail className="w-8 h-8 text-primary mx-auto mb-3" />

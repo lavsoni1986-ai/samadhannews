@@ -52,6 +52,7 @@ interface News {
   author: string;
   published_at: string;
   is_breaking: boolean;
+  views?: number;
 }
 
 interface Settings {

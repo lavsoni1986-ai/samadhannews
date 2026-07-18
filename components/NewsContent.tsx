@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
+import { Eye } from 'lucide-react';
 import { formatDateTimeHindi } from '@/lib/utils';
 import MediaContent from '@/components/MediaContent';
 import Footer from '@/components/Footer';
@@ -202,7 +203,12 @@ export default function NewsContent({ item, categoriesList, related, adSettings 
               </div>
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">{item.author}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{formatDateTimeHindi(item.publishedAt)}</p>
+                <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                  <span>{formatDateTimeHindi(item.publishedAt)}</span>
+                  <span className="flex items-center gap-1 font-medium bg-gray-100 dark:bg-slate-800 px-2 py-0.5 rounded text-gray-600 dark:text-gray-300">
+                    <Eye className="w-4 h-4" /> {item.views ? item.views.toLocaleString('hi-IN') : 0} बार देखा गया
+                  </span>
+                </div>
               </div>
             </div>
             

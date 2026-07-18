@@ -24,6 +24,8 @@ export interface News {
   category: string;
   author: string;
   publishedAt: string;
+  isBreaking?: boolean;
+  views?: number;
 }
 
 // Categories for navigation

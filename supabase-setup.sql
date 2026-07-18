@@ -132,4 +132,18 @@ ALTER TABLE public.settings
   ADD COLUMN IF NOT EXISTS banner_top_url TEXT,
   ADD COLUMN IF NOT EXISTS banner_top_link TEXT,
   ADD COLUMN IF NOT EXISTS banner_article_url TEXT,
-  ADD COLUMN IF NOT EXISTS banner_article_link TEXT;
+  ADD COLUMN IF NOT EXISTS banner_article_link TEXT;
+
+-- ============================================================
+-- MIGRATION: Feature Pack-2 (View Counter)
+-- ============================================================
+ALTER TABLE public.news ADD COLUMN IF NOT EXISTS views BIGINT DEFAULT 0;
+
+CREATE OR REPLACE FUNCTION increment_view_count(story_id UUID)
+RETURNS void AS $$
+BEGIN
+  UPDATE public.news
+  SET views = views + 1
+  WHERE id = story_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

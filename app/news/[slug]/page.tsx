@@ -71,6 +71,9 @@ export default async function NewsPage({ params }: NewsPageProps) {
     notFound();
   }
 
+  // Increment views in database
+  await supabaseServer.rpc('increment_view_count', { story_id: dbNewsItem.id });
+
   const item = mapDbNewsToAppNews(dbNewsItem);
 
   // 2. Fetch categories

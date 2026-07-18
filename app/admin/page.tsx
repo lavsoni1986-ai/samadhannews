@@ -24,6 +24,7 @@ import {
   AlertTriangle,
   X,
   Link as LinkIcon,
+  Eye,
 } from 'lucide-react';
 
 // Dynamic import for Tiptap (avoids SSR issues)
@@ -1293,6 +1294,9 @@ export default function AdminPage() {
                             {item.is_breaking && (
                               <span className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-0.5 rounded font-medium">Breaking</span>
                             )}
+                            <span className="text-xs bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300 px-2 py-0.5 rounded font-medium flex items-center gap-1">
+                              <Eye className="w-3 h-3" /> {item.views || 0}
+                            </span>
                           </div>
                         </div>
                       </div>

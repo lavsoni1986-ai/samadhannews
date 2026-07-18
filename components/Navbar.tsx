@@ -47,7 +47,7 @@ function DarkModeToggle() {
     <button
       onClick={toggle}
       aria-label={dark ? 'लाइट मोड चालू करें' : 'डार्क मोड चालू करें'}
-      className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors text-gray-700 dark:text-gray-200"
+      className="p-3 w-12 h-12 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors text-gray-700 dark:text-gray-200"
     >
       {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
     </button>
@@ -108,7 +108,7 @@ export default function Navbar() {
       </div>
 
       {/* Main Navbar */}
-      <nav className="bg-white dark:bg-slate-900 border-b border-border dark:border-slate-700 overflow-visible">
+      <nav className="backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border-b border-border dark:border-slate-700 overflow-visible transition-colors">
         <div className="max-w-7xl mx-auto px-4 overflow-visible">
           <div className="flex justify-between items-center h-20 md:h-24 gap-3 overflow-visible">
             {/* Mobile: centered logo, desktop: normal brand block */}
@@ -139,7 +139,7 @@ export default function Navbar() {
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg text-gray-700 dark:text-gray-200"
+                className="lg:hidden p-3 w-12 h-12 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg text-gray-700 dark:text-gray-200"
                 aria-label={mobileMenuOpen ? 'मेन्यू बंद करें' : 'मेन्यू खोलें'}
                 aria-expanded={mobileMenuOpen}
               >

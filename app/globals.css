@@ -13,13 +13,13 @@
    ============================================================ */
 @theme {
   /* Brand colors (remap Tailwind reds/grays to the new palette) */
-  --color-primary: #C1121F;
-  --color-primary-dark: #A4161A;
-  --color-primary-light: #E5383B;
+  --color-primary: #B91C1C;
+  --color-primary-dark: #991B1B;
+  --color-primary-light: #DC2626;
 
-  --color-red-600: #E5383B;
-  --color-red-700: #C1121F;
-  --color-red-800: #A4161A;
+  --color-red-600: #DC2626;
+  --color-red-700: #B91C1C;
+  --color-red-800: #991B1B;
 
   --color-secondary: #0F172A;
   --color-slate-900: #0F172A;

@@ -156,7 +156,8 @@ export default function NewsContent({ item, categoriesList, related, adSettings 
       <article className="max-w-3xl mx-auto px-4 py-8">
         {/* Local Ad SLOT 1: Top Banner */}
         {adSettings.banner_top_url && (
-          <div className="mb-6 flex justify-center w-full">
+          <div className="mb-6 flex justify-center w-full relative min-h-[100px]">
+            <span className="absolute top-1 right-2 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded backdrop-blur-sm z-10 pointer-events-none">विज्ञापन</span>
             <a
               href={adSettings.banner_top_link || '#'}
               target="_blank"
@@ -188,7 +189,7 @@ export default function NewsContent({ item, categoriesList, related, adSettings 
             )}
           </div>
           
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4 leading-normal tracking-tight">
             {item.title}
           </h1>
           
@@ -281,7 +282,8 @@ export default function NewsContent({ item, categoriesList, related, adSettings 
 
         {/* Local Ad SLOT 2: In-Article Banner */}
         {adSettings.banner_article_url ? (
-          <div className="my-6 flex justify-center w-full">
+          <div className="my-6 flex justify-center w-full relative min-h-[100px]">
+            <span className="absolute top-1 right-2 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded backdrop-blur-sm z-10 pointer-events-none">विज्ञापन</span>
             <a
               href={adSettings.banner_article_link || '#'}
               target="_blank"
@@ -296,16 +298,19 @@ export default function NewsContent({ item, categoriesList, related, adSettings 
             </a>
           </div>
         ) : (adSettings.adsense_client || adSettings.banner_link) && (
-          <AdSenseBanner
-            client={adSettings.adsense_client}
-            slot={adSettings.adsense_slot_article}
-            fallbackUrl={adSettings.banner_link}
-          />
+          <div className="min-h-[100px] relative">
+            <span className="absolute top-0 right-0 bg-black/10 text-gray-500 dark:text-gray-400 text-[10px] px-1.5 py-0.5 rounded backdrop-blur-sm z-10 pointer-events-none">विज्ञापन</span>
+            <AdSenseBanner
+              client={adSettings.adsense_client}
+              slot={adSettings.adsense_slot_article}
+              fallbackUrl={adSettings.banner_link}
+            />
+          </div>
         )}
 
         {/* Content */}
         <div 
-          className="prose prose-lg max-w-none text-gray-800 dark:text-gray-200"
+          className="prose prose-lg max-w-none text-gray-800 dark:text-gray-200 leading-loose"
           suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: item.content }}
         />

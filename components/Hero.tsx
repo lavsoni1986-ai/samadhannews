@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import Image from 'next/image';
+import cloudinaryLoader from '@/lib/imageLoader';
 import { News } from '@/lib/mockData';
 import { formatDateHindi } from '@/lib/utils';
 
@@ -20,9 +22,13 @@ export default function Hero({ featured }: HeroProps) {
           <div className="relative aspect-[16/9] rounded-lg overflow-hidden mb-4">
             {isVideo ? (
               <>
-                <img
+                <Image
+                  loader={cloudinaryLoader}
                   src={thumbUrl}
                   alt={featured.title}
+                  fill
+                  sizes="(max-width: 1200px) 100vw, 1200px"
+                  priority
                   className="object-cover w-full h-full"
                 />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors">
@@ -37,7 +43,15 @@ export default function Hero({ featured }: HeroProps) {
                 </div>
               </>
             ) : (
-              <img src={featured.image} alt={featured.title} className="object-cover w-full h-full" />
+              <Image
+                loader={cloudinaryLoader}
+                src={featured.image}
+                alt={featured.title}
+                fill
+                sizes="(max-width: 1200px) 100vw, 1200px"
+                priority
+                className="object-cover w-full h-full"
+              />
             )}
           </div>
           

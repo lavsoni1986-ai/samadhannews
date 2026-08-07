@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import Image from 'next/image';
+import cloudinaryLoader from '@/lib/imageLoader';
 import { News } from '@/lib/mockData';
 import { formatDateHindi, truncateText } from '@/lib/utils';
 

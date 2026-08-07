@@ -93,10 +93,10 @@ export default function HomeContent() {
           .select('slug, name, name_en');
         if (cats) setCategoriesList(cats);
 
-        // 2. Fetch News
+        // 2. Fetch News (select summary fields only, omitting heavy content column for fast homepage load)
         const { data: newsItems } = await supabase
           .from('news')
-          .select('*')
+          .select('id, slug, title, excerpt, image, images, media_type, video_url, youtube_id, category, author, published_at, is_breaking, views, video_duration, cloudinary_public_id')
           .order('published_at', { ascending: false });
         if (newsItems) {
           const mapped = newsItems.map(item => mapDbNewsToAppNews(item));

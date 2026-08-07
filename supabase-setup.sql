@@ -47,10 +47,30 @@ CREATE INDEX IF NOT EXISTS news_breaking_idx ON public.news (is_breaking, publis
 CREATE INDEX IF NOT EXISTS news_category_idx ON public.news (category, published_at DESC);
 CREATE INDEX IF NOT EXISTS news_slug_idx ON public.news (slug);
 
--- 6) Disable RLS temporarily for initial setup
-ALTER TABLE public.categories DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.news DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.settings DISABLE ROW LEVEL SECURITY;
+-- 6) Enable RLS and define access policies for security
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.news ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
+
+-- Allow public read access to all readers
+DROP POLICY IF EXISTS "Public read news" ON public.news;
+CREATE POLICY "Public read news" ON public.news FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public read categories" ON public.categories;
+CREATE POLICY "Public read categories" ON public.categories FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public read settings" ON public.settings;
+CREATE POLICY "Public read settings" ON public.settings FOR SELECT USING (true);
+
+-- Allow authenticated admin users full CRUD access
+DROP POLICY IF EXISTS "Authenticated write news" ON public.news;
+CREATE POLICY "Authenticated write news" ON public.news FOR ALL USING (auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Authenticated write categories" ON public.categories;
+CREATE POLICY "Authenticated write categories" ON public.categories FOR ALL USING (auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Authenticated write settings" ON public.settings;
+CREATE POLICY "Authenticated write settings" ON public.settings FOR ALL USING (auth.role() = 'authenticated');
 
 -- 7) Seed Categories
 INSERT INTO public.categories (slug, name, name_en) VALUES

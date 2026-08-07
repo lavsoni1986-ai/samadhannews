@@ -9,7 +9,7 @@ import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
 import Newsletter from '@/components/Newsletter';
 import { supabase, mapDbNewsToAppNews } from '@/lib/supabaseClient';
-import { News, mockNews } from '@/lib/mockData';
+import { News, news as mockNews } from '@/lib/mockData';
 
 interface Category {
   slug: string;

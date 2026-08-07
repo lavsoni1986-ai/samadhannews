@@ -9,7 +9,7 @@ import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
 import Newsletter from '@/components/Newsletter';
 import { supabase, mapDbNewsToAppNews } from '@/lib/supabaseClient';
-import { News } from '@/lib/mockData';
+import { News, mockNews } from '@/lib/mockData';
 
 interface Category {
   slug: string;
@@ -98,9 +98,19 @@ export default function HomeContent() {
           .from('news')
           .select('id, slug, title, excerpt, image, images, media_type, video_url, youtube_id, category, author, published_at, is_breaking, views, video_duration, cloudinary_public_id')
           .order('published_at', { ascending: false });
-        if (newsItems) {
+        
+        if (newsItems && newsItems.length > 0) {
           const mapped = newsItems.map(item => mapDbNewsToAppNews(item));
-          setNewsList(mapped);
+          // If database has fewer than 4 items, merge with mockNews to fill up homepage grids nicely
+          if (mapped.length < 4) {
+            const existingIds = new Set(mapped.map(n => n.id));
+            const extraMocks = mockNews.filter(m => !existingIds.has(m.id));
+            setNewsList([...mapped, ...extraMocks]);
+          } else {
+            setNewsList(mapped);
+          }
+        } else {
+          setNewsList(mockNews);
         }
 
         // 3. Fetch Settings
@@ -171,7 +181,7 @@ export default function HomeContent() {
   const remainingNews = newsList.filter(n => n.id !== heroNews?.id);
 
   const featured = remainingNews.slice(0, 2);
-  const latestGrid = remainingNews.slice(2, 11);
+  const latestGrid = remainingNews.length > 2 ? remainingNews.slice(2, 11) : remainingNews;
   const videos = newsList.filter((n) => n.youtubeId || n.videoUrl).slice(0, 4);
   const photoGallery = newsList.filter((n) => n.mediaType === 'image').slice(0, 6);
   const opinions = newsList

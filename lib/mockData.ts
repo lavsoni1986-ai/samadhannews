@@ -26,6 +26,8 @@ export interface News {
   publishedAt: string;
   isBreaking?: boolean;
   views?: number;
+  cloudinaryPublicId?: string;
+  videoDuration?: string;
 }
 
 // Categories for navigation

@@ -27,6 +27,9 @@ export default function NewsCard({ news, variant = 'default' }: NewsCardProps) {
     'madhya-pradesh': 'bg-fuchsia-100 text-fuchsia-700',
   };
 
+  const isVideo = news.mediaType === 'video' || !!news.youtubeId || !!news.videoUrl;
+  const durationLabel = news.videoDuration ? `▶ ${news.videoDuration}` : 'वीडियो';
+
   if (variant === 'compact') {
     return (
       <Link href={`/news/${news.slug}`} className="group">
@@ -41,10 +44,10 @@ export default function NewsCard({ news, variant = 'default' }: NewsCardProps) {
             ) : (
               <img src={news.image} alt={news.title} className="object-cover w-full h-full" />
             )}
-            {news.youtubeId && (
+            {isVideo && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                 <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  <path d="M8 5v14l11-7z"/>
                 </svg>
               </div>
             )}
@@ -74,7 +77,7 @@ export default function NewsCard({ news, variant = 'default' }: NewsCardProps) {
             ) : (
               <img src={news.image} alt={news.title} className="object-cover w-full h-full" />
             )}
-            {news.youtubeId && (
+            {isVideo && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                 <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center">
                   <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
@@ -82,6 +85,11 @@ export default function NewsCard({ news, variant = 'default' }: NewsCardProps) {
                   </svg>
                 </div>
               </div>
+            )}
+            {isVideo && (
+              <span className="absolute top-3 right-3 bg-red-600/90 text-white text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1 shadow-sm">
+                {durationLabel}
+              </span>
             )}
             <span className={`absolute top-3 left-3 px-2.5 py-1 rounded text-xs font-medium ${categoryColors[news.category] || 'bg-gray-100 text-gray-700'}`}>
               {news.category}
@@ -109,23 +117,22 @@ export default function NewsCard({ news, variant = 'default' }: NewsCardProps) {
                 alt={news.title}
                 className="object-cover w-full h-full"
               />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
-                <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z"/>
-                  </svg>
-                </div>
-              </div>
             </>
           ) : (
             <img src={news.image} alt={news.title} className="object-cover w-full h-full" />
           )}
-          {news.youtubeId && (
-            <span className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded flex items-center gap-1">
-              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-              </svg>
-              वीडियो
+          {isVideo && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
+              <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </div>
+            </div>
+          )}
+          {isVideo && (
+            <span className="absolute top-2 right-2 bg-red-600/90 text-white text-xs px-2 py-0.5 rounded font-bold flex items-center gap-1 shadow-sm">
+              {durationLabel}
             </span>
           )}
         </div>

@@ -53,6 +53,8 @@ interface News {
   published_at: string;
   is_breaking: boolean;
   views?: number;
+  cloudinary_public_id?: string;
+  video_duration?: string;
 }
 
 interface Settings {
@@ -80,6 +82,31 @@ function extractYoutubeId(input: string): string {
     /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
   );
   return match ? match[1] : trimmed;
+}
+
+// Helper: Format seconds into MM:SS or HH:MM:SS duration string
+function formatDuration(seconds: number): string {
+  if (!seconds || isNaN(seconds)) return '';
+  const totalSeconds = Math.round(seconds);
+  const hrs = Math.floor(totalSeconds / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
+  
+  const formattedMins = String(mins).padStart(2, '0');
+  const formattedSecs = String(secs).padStart(2, '0');
+  
+  if (hrs > 0) {
+    return `${String(hrs).padStart(2, '0')}:${formattedMins}:${formattedSecs}`;
+  }
+  return `${formattedMins}:${formattedSecs}`;
+}
+
+// Helper: Generate Cloudinary video poster frame URL (so_0 = start offset 0s)
+function getCloudinaryVideoPoster(videoUrl: string): string {
+  if (!videoUrl || !videoUrl.includes('cloudinary.com')) return '';
+  return videoUrl
+    .replace('/video/upload/', '/video/upload/so_0,q_auto,f_auto/')
+    .replace(/\.[a-zA-Z0-9]+$/, '.jpg');
 }
 
 // -------------------------------------------------------------
@@ -231,6 +258,8 @@ export default function AdminPage() {
     author: 'संपादक',
     published_at: new Date().toISOString().substring(0, 16),
     is_breaking: false,
+    cloudinary_public_id: '',
+    video_duration: '',
   });
   const [uploadingImages, setUploadingImages] = useState(false);
   const [editingNewsId, setEditingNewsId] = useState<string | null>(null);
@@ -248,6 +277,7 @@ export default function AdminPage() {
   // Cloudinary media upload state
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [uploadedUrl, setUploadedUrl] = useState('');
   const [sessionUploadedUrls, setSessionUploadedUrls] = useState<string[]>([]);
 
@@ -384,6 +414,8 @@ export default function AdminPage() {
       author: newsForm.author,
       published_at: new Date(newsForm.published_at).toISOString(),
       is_breaking: newsForm.is_breaking,
+      cloudinary_public_id: newsForm.cloudinary_public_id || null,
+      video_duration: newsForm.video_duration || null,
     };
 
     try {
@@ -417,6 +449,8 @@ export default function AdminPage() {
         author: 'संपादक',
         published_at: new Date().toISOString().substring(0, 16),
         is_breaking: false,
+        cloudinary_public_id: '',
+        video_duration: '',
       });
       setEditingNewsId(null);
       fetchAllData();
@@ -443,6 +477,8 @@ export default function AdminPage() {
       author: item.author,
       published_at: new Date(item.published_at).toISOString().substring(0, 16),
       is_breaking: item.is_breaking,
+      cloudinary_public_id: item.cloudinary_public_id || '',
+      video_duration: item.video_duration || '',
     });
     setActiveTab('news');
   }
@@ -452,6 +488,10 @@ export default function AdminPage() {
     setLoading(true);
 
     try {
+      const itemToDelete = newsList.find(n => n.id === id);
+      if (itemToDelete?.cloudinary_public_id) {
+        console.log('Cloudinary Public ID tagged for deletion sync:', itemToDelete.cloudinary_public_id);
+      }
       const { error } = await supabase
         .from('news')
         .delete()
@@ -536,6 +576,7 @@ export default function AdminPage() {
 
   // -------------------------------------------------------------
   // Cloudinary Media Upload (single file - Media tab)
+  // Real-time XHR Progress Bar + Video/Auto Transformation Support
   // -------------------------------------------------------------
   async function handleCloudinaryUpload(e: React.FormEvent) {
     e.preventDefault();
@@ -553,6 +594,7 @@ export default function AdminPage() {
     }
 
     setUploadingMedia(true);
+    setUploadProgress(0);
     setUploadedUrl('');
 
     try {
@@ -560,28 +602,75 @@ export default function AdminPage() {
       formData.append('file', uploadFile);
       formData.append('upload_preset', preset);
 
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-        method: 'POST',
-        body: formData,
+      // Use XMLHttpRequest for real-time progress tracking
+      const json: any = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percent = Math.round((event.loaded / event.total) * 100);
+            setUploadProgress(percent);
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              resolve(JSON.parse(xhr.responseText));
+            } catch (err) {
+              reject(new Error('Invalid response JSON from server'));
+            }
+          } else {
+            try {
+              const errJson = JSON.parse(xhr.responseText);
+              reject(new Error(errJson.error?.message || `HTTP error ${xhr.status}`));
+            } catch {
+              reject(new Error(`Upload failed with status ${xhr.status}`));
+            }
+          }
+        };
+
+        xhr.onerror = () => reject(new Error('Network error during file upload'));
+        xhr.onabort = () => reject(new Error('Upload aborted'));
+
+        // Use /auto/upload endpoint so Cloudinary handles both images and videos smoothly
+        xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`);
+        xhr.send(formData);
       });
 
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error?.message || `HTTP error ${res.status}`);
-      }
-
-      const json = await res.json();
       const absoluteUrl = json.secure_url;
+      const isVideo = json.resource_type === 'video' || uploadFile.type.startsWith('video/');
+      const publicId = json.public_id || '';
+      const rawDuration = json.duration ? parseFloat(json.duration) : 0;
+      const formattedDuration = rawDuration > 0 ? formatDuration(rawDuration) : '';
+
       setUploadedUrl(absoluteUrl);
       setSessionUploadedUrls(prev => [absoluteUrl, ...prev]);
-      showNotification('success', 'फ़ाइल सफलतापूर्वक क्लाउड पर अपलोड की गई।');
+      showNotification('success', isVideo ? 'वीडियो सफलतापूर्वक अपलोड हुआ!' : 'फ़ाइल सफलतापूर्वक क्लाउड पर अपलोड की गई।');
 
-      // Auto-set image field in news CRUD form to this uploaded URL
-      setNewsForm(prev => ({ ...prev, image: absoluteUrl, images: [absoluteUrl, ...prev.images] }));
+      if (isVideo) {
+        const posterUrl = getCloudinaryVideoPoster(absoluteUrl) || absoluteUrl;
+        setNewsForm(prev => ({
+          ...prev,
+          media_type: 'video',
+          video_url: absoluteUrl,
+          image: prev.image || posterUrl,
+          cloudinary_public_id: publicId,
+          video_duration: formattedDuration || prev.video_duration,
+        }));
+      } else {
+        setNewsForm(prev => ({
+          ...prev,
+          image: absoluteUrl,
+          images: [absoluteUrl, ...prev.images],
+          cloudinary_public_id: publicId,
+        }));
+      }
     } catch (err: any) {
       showNotification('error', 'अपलोड विफल: ' + err.message);
     } finally {
       setUploadingMedia(false);
+      setUploadProgress(null);
     }
   }
 
@@ -994,6 +1083,8 @@ export default function AdminPage() {
                         author: 'संपादक',
                         published_at: new Date().toISOString().substring(0, 16),
                         is_breaking: false,
+                        cloudinary_public_id: '',
+                        video_duration: '',
                       });
                     }}
                     className="bg-slate-200 dark:bg-slate-700 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-slate-300 transition-all cursor-pointer"
@@ -1104,13 +1195,23 @@ export default function AdminPage() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-bold mb-1.5">या सीधे वीडियो फ़ाइल URL (MP4)</label>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="block text-sm font-bold">या सीधे वीडियो फ़ाइल URL (MP4)</label>
+                          <button
+                            type="button"
+                            onClick={() => setActiveTab('media')}
+                            className="text-xs font-semibold text-red-600 hover:text-red-700 dark:text-red-400 underline flex items-center gap-1 cursor-pointer"
+                          >
+                            <Upload className="w-3.5 h-3.5" />
+                            वीडियो डायरेक्ट अपलोड करें
+                          </button>
+                        </div>
                         <input 
                           type="text" 
                           value={newsForm.video_url}
                           onChange={(e) => setNewsForm(prev => ({ ...prev, video_url: e.target.value }))}
                           className="w-full px-4 py-2 bg-white dark:bg-slate-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 text-slate-900 dark:text-white"
-                          placeholder="https://example.com/video.mp4"
+                          placeholder="https://res.cloudinary.com/.../video.mp4"
                         />
                       </div>
                     </>
@@ -1471,31 +1572,46 @@ export default function AdminPage() {
                     <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-6 text-center hover:bg-slate-100 dark:hover:bg-slate-700/40 transition-colors relative">
                       <input 
                         type="file" 
-                        accept="image/*"
+                        accept="image/*,video/*"
                         onChange={(e) => setUploadFile(e.target.files ? e.target.files[0] : null)}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       />
                       <Upload className="w-10 h-10 mx-auto text-slate-400 mb-2" />
                       <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        {uploadFile ? uploadFile.name : 'ड्रैग करें या फाइल चुनने के लिए क्लिक करें'}
+                        {uploadFile ? uploadFile.name : 'ड्रैग करें या फोटो/वीडियो चुनने के लिए क्लिक करें'}
                       </p>
-                      <p className="text-xs text-slate-400 mt-1">JPEG, PNG, WEBP (अधिकतम 10MB)</p>
+                      <p className="text-xs text-slate-400 mt-1">JPEG, PNG, WEBP, MP4, MOV, WEBM (ऑटो-कंप्रेशन चालू)</p>
                     </div>
+
+                    {uploadingMedia && uploadProgress !== null && (
+                      <div className="space-y-1.5 p-3 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
+                          <span>अपलोड जारी है (Uploading...)...</span>
+                          <span className="text-red-600 dark:text-red-400 font-mono">{uploadProgress}%</span>
+                        </div>
+                        <div className="w-full bg-slate-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden">
+                          <div 
+                            className="bg-gradient-to-r from-red-500 to-red-600 h-full transition-all duration-150 ease-out" 
+                            style={{ width: `${uploadProgress}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
 
                     <button
                       type="submit"
                       disabled={uploadingMedia || !uploadFile}
                       className="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-bold cursor-pointer disabled:opacity-40 flex items-center justify-center gap-2"
                     >
-                      {uploadingMedia ? <Loader2 className="w-5 h-5 animate-spin" /> : 'क्लाउड पर भेजें (Upload)'}
+                      {uploadingMedia ? <Loader2 className="w-5 h-5 animate-spin" /> : 'क्लाउड पर भेजें (Upload Media)'}
                     </button>
                   </form>
 
                   {uploadedUrl && (
-                    <div className="p-4 bg-green-50 border border-green-200 rounded-xl text-green-800 text-xs break-all">
-                      <p className="font-bold mb-1">सफलतापूर्वक अपलोड किया गया यूआरएल:</p>
-                      <a href={uploadedUrl} target="_blank" className="underline font-mono">{uploadedUrl}</a>
-                      <p className="text-slate-500 mt-2">नोट: यह URL आपके समाचार CRUD फॉर्म के इमेज फ़ील्ड में आटोमैटिक सेट हो गया है।</p>
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-xl text-green-800 text-xs break-all space-y-1">
+                      <p className="font-bold">✓ सफलतापूर्वक अपलोड किया गया यूआरएल:</p>
+                      <a href={uploadedUrl} target="_blank" className="underline font-mono text-green-900">{uploadedUrl}</a>
+                      <p className="text-slate-500 text-[11px]">नोट: यह URL आपके समाचार CRUD फॉर्म में ऑटोमैटिक सेट कर दिया गया है।</p>
                     </div>
                   )}
                 </div>
@@ -1504,20 +1620,32 @@ export default function AdminPage() {
                 <div className="space-y-4">
                   <h3 className="font-bold text-lg">इस सत्र में अपलोड की गई मीडिया</h3>
                   <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto">
-                    {sessionUploadedUrls.map((url, index) => (
-                      <div key={index} className="relative aspect-video rounded-xl overflow-hidden border bg-slate-100 group">
-                        <img src={url} alt="" className="w-full h-full object-cover" />
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(url);
-                            showNotification('success', 'यूआरएल क्लिपबोर्ड में कॉपी किया गया!');
-                          }}
-                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
-                        >
-                          कॉपी यूआरएल
-                        </button>
-                      </div>
-                    ))}
+                    {sessionUploadedUrls.map((url, index) => {
+                      const isVid = url.includes('/video/upload/') || url.match(/\.(mp4|mov|webm)$/i);
+                      return (
+                        <div key={index} className="relative aspect-video rounded-xl overflow-hidden border bg-slate-900 group">
+                          {isVid ? (
+                            <video src={url} className="w-full h-full object-cover" muted />
+                          ) : (
+                            <img src={url} alt="" className="w-full h-full object-cover" />
+                          )}
+                          {isVid && (
+                            <span className="absolute top-1.5 left-1.5 bg-red-600/90 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
+                              VIDEO
+                            </span>
+                          )}
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(url);
+                              showNotification('success', 'यूआरएल क्लिपबोर्ड में कॉपी किया गया!');
+                            }}
+                            className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold cursor-pointer"
+                          >
+                            कॉपी यूआरएल
+                          </button>
+                        </div>
+                      );
+                    })}
                     {sessionUploadedUrls.length === 0 && (
                       <div className="col-span-2 text-center py-12 text-slate-500 border border-dashed rounded-xl">
                         कोई मीडिया अभी अपलोड नहीं की गई।

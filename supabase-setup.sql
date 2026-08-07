@@ -146,4 +146,12 @@ BEGIN
   SET views = views + 1
   WHERE id = story_id;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ============================================================
+-- MIGRATION: Feature Pack-3 (Cloudinary Video & Public ID Tracking)
+-- ============================================================
+ALTER TABLE public.news
+  ADD COLUMN IF NOT EXISTS cloudinary_public_id TEXT,
+  ADD COLUMN IF NOT EXISTS video_duration TEXT;
+

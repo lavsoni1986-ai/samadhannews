@@ -9,7 +9,7 @@ import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
 import Newsletter from '@/components/Newsletter';
 import { supabase, mapDbNewsToAppNews } from '@/lib/supabaseClient';
-import { News, news as mockNews } from '@/lib/mockData';
+import { News } from '@/lib/mockData';
 
 interface Category {
   slug: string;
@@ -101,18 +101,12 @@ export default function HomeContent() {
         
         if (newsItems && newsItems.length > 0) {
           const mapped = newsItems.map(item => mapDbNewsToAppNews(item));
-          // If database has fewer than 4 items, merge with mockNews to fill up homepage grids nicely
-          if (mapped.length < 4) {
-            const existingIds = new Set(mapped.map(n => n.id));
-            const extraMocks = mockNews.filter(m => !existingIds.has(m.id));
-            const combined = [...mapped, ...extraMocks];
-            combined.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-            setNewsList(combined);
-          } else {
-            setNewsList(mapped);
-          }
+          // Sort descending by publishedAt just in case
+          mapped.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+          setNewsList(mapped);
         } else {
-          setNewsList(mockNews);
+          // No news fetched – show empty list (or could show a friendly message)
+          setNewsList([]);
         }
 
         // 3. Fetch Settings

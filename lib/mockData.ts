@@ -50,6 +50,8 @@ export const categories: Category[] = [
   { id: '16', slug: 'madhya-pradesh', name: 'मध्य प्रदेश', nameEn: 'Madhya Pradesh' },
 ];
 
+const getRecentISO = (hoursAgo: number) => new Date(Date.now() - hoursAgo * 3600 * 1000).toISOString();
+
 // News articles - mixed image and video content
 export const news: News[] = [
   {
@@ -64,7 +66,7 @@ export const news: News[] = [
     mediaType: 'image',
     category: 'desh',
     author: 'राजेश कुमार',
-    publishedAt: '2026-02-06T10:30:00Z',
+    publishedAt: getRecentISO(1),
   },
   {
     id: '2',
@@ -78,7 +80,7 @@ export const news: News[] = [
     mediaType: 'image',
     category: 'desh',
     author: 'अनिल शर्मा',
-    publishedAt: '2026-02-06T09:15:00Z',
+    publishedAt: getRecentISO(2),
   },
   {
     id: '3',
@@ -92,7 +94,7 @@ export const news: News[] = [
     mediaType: 'image',
     category: 'desh',
     author: 'प्रियंका सिंह',
-    publishedAt: '2026-02-06T08:00:00Z',
+    publishedAt: getRecentISO(3),
   },
   {
     id: '4',
@@ -106,7 +108,7 @@ export const news: News[] = [
     mediaType: 'image',
     category: 'duniya',
     author: 'विक्रम सक्सेना',
-    publishedAt: '2026-02-05T22:45:00Z',
+    publishedAt: getRecentISO(4),
   },
   {
     id: '5',
@@ -120,7 +122,7 @@ export const news: News[] = [
     mediaType: 'image',
     category: 'cg',
     author: 'दीपक वर्मा',
-    publishedAt: '2026-02-06T07:30:00Z',
+    publishedAt: getRecentISO(5),
   },
   {
     id: '6',
@@ -135,7 +137,7 @@ export const news: News[] = [
     youtubeId: 'dQw4w9WgXcQ',
     category: 'kheel',
     author: 'महेश भाई',
-    publishedAt: '2026-02-05T20:15:00Z',
+    publishedAt: getRecentISO(6),
   },
   {
     id: '7',
@@ -149,7 +151,7 @@ export const news: News[] = [
     mediaType: 'image',
     category: 'manoranjan',
     author: 'कविता शर्मा',
-    publishedAt: '2026-02-06T06:00:00Z',
+    publishedAt: getRecentISO(7),
   },
   {
     id: '8',
@@ -164,7 +166,7 @@ export const news: News[] = [
     youtubeId: 'LXb3EKWsInQ',
     category: 'tech',
     author: 'आनंद गुप्ता',
-    publishedAt: '2026-02-05T18:30:00Z',
+    publishedAt: getRecentISO(8),
   },
   {
     id: '9',
@@ -178,7 +180,7 @@ export const news: News[] = [
     mediaType: 'image',
     category: 'desh',
     author: 'सुरेश त्यागी',
-    publishedAt: '2026-02-06T05:45:00Z',
+    publishedAt: getRecentISO(9),
   },
   {
     id: '10',
@@ -192,7 +194,7 @@ export const news: News[] = [
     mediaType: 'image',
     category: 'desh',
     author: 'पवन कुमार',
-    publishedAt: '2026-02-06T04:30:00Z',
+    publishedAt: getRecentISO(10),
   },
   {
     id: '11',
@@ -206,7 +208,7 @@ export const news: News[] = [
     mediaType: 'image',
     category: 'rajneeti',
     author: 'राजेश कुमार',
-    publishedAt: '2026-02-06T03:15:00Z',
+    publishedAt: getRecentISO(11),
   },
   {
     id: '12',
@@ -220,7 +222,7 @@ export const news: News[] = [
     mediaType: 'image',
     category: 'vyapar',
     author: 'विक्रम सक्सेना',
-    publishedAt: '2026-02-06T02:40:00Z',
+    publishedAt: getRecentISO(12),
   },
   {
     id: '13',
@@ -234,7 +236,7 @@ export const news: News[] = [
     mediaType: 'image',
     category: 'shiksha',
     author: 'कविता शर्मा',
-    publishedAt: '2026-02-05T23:10:00Z',
+    publishedAt: getRecentISO(13),
   },
   {
     id: '14',
@@ -248,7 +250,7 @@ export const news: News[] = [
     mediaType: 'image',
     category: 'swasthya',
     author: 'डॉ. सुनीता वर्मा',
-    publishedAt: '2026-02-05T21:30:00Z',
+    publishedAt: getRecentISO(14),
   },
   {
     id: '15',
@@ -262,7 +264,7 @@ export const news: News[] = [
     mediaType: 'image',
     category: 'dharm',
     author: 'प्रियंका सिंह',
-    publishedAt: '2026-02-05T19:00:00Z',
+    publishedAt: getRecentISO(15),
   },
   {
     id: '16',
@@ -276,7 +278,7 @@ export const news: News[] = [
     mediaType: 'image',
     category: 'jeevan',
     author: 'अनिता गुप्ता',
-    publishedAt: '2026-02-05T17:45:00Z',
+    publishedAt: getRecentISO(16),
   },
   {
     id: '17',
@@ -290,7 +292,7 @@ export const news: News[] = [
     mediaType: 'image',
     category: 'sampadkiya',
     author: 'संपादक मंडल',
-    publishedAt: '2026-02-05T16:20:00Z',
+    publishedAt: getRecentISO(17),
   },
   {
     id: '18',
@@ -304,7 +306,7 @@ export const news: News[] = [
     mediaType: 'image',
     category: 'raay',
     author: 'विश्लेषक',
-    publishedAt: '2026-02-05T15:00:00Z',
+    publishedAt: getRecentISO(18),
   },
   {
     id: '19',
@@ -318,7 +320,7 @@ export const news: News[] = [
     mediaType: 'image',
     category: 'rajya',
     author: 'दीपक वर्मा',
-    publishedAt: '2026-02-05T14:10:00Z',
+    publishedAt: getRecentISO(19),
   },
   {
     id: '20',
@@ -332,7 +334,7 @@ export const news: News[] = [
     mediaType: 'image',
     category: 'madhya-pradesh',
     author: 'सुरेश त्यागी',
-    publishedAt: '2026-02-05T13:00:00Z',
+    publishedAt: getRecentISO(20),
   },
   {
     id: '21',
@@ -346,7 +348,7 @@ export const news: News[] = [
     mediaType: 'image',
     category: 'cg',
     author: 'अनिल शर्मा',
-    publishedAt: '2026-02-05T12:00:00Z',
+    publishedAt: getRecentISO(21),
   },
 ];
 

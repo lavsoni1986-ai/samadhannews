@@ -105,7 +105,9 @@ export default function HomeContent() {
           if (mapped.length < 4) {
             const existingIds = new Set(mapped.map(n => n.id));
             const extraMocks = mockNews.filter(m => !existingIds.has(m.id));
-            setNewsList([...mapped, ...extraMocks]);
+            const combined = [...mapped, ...extraMocks];
+            combined.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+            setNewsList(combined);
           } else {
             setNewsList(mapped);
           }

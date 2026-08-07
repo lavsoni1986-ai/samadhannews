@@ -1,13 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 import { News } from './mockData';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder-project.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+if (!supabaseUrl) {
+  throw new Error('NEXT_PUBLIC_SUPABASE_URL is not set. Please configure it in .env.local and in Vercel Environment Variables.');
+}
 
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL || (!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY && !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)) {
-  if (typeof window !== 'undefined') {
-    console.warn('Supabase URL or key environment variables are missing. Falling back to placeholder strings.');
-  }
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+if (!supabaseAnonKey) {
+  throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY is not set. Please configure it in .env.local and in Vercel Environment Variables.');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);

@@ -96,7 +96,7 @@ export default function HomeContent() {
         // 2. Fetch News (select summary fields only, omitting heavy content column for fast homepage load)
         const { data: newsItems } = await supabase
           .from('news')
-          .select('id, slug, title, excerpt, image, images, media_type, video_url, youtube_id, category, author, published_at, is_breaking, views, video_duration, cloudinary_public_id')
+          .select('id, slug, title, excerpt, image, images, media_type, video_url, youtube_id, category, author, published_at, views, video_duration')
           .order('published_at', { ascending: false });
         
         if (newsItems && newsItems.length > 0) {

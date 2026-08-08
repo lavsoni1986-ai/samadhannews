@@ -1,7 +1,7 @@
 /**
  * Utility functions for date formatting in Hindi
  */
-import { news as mockNews, News } from './mockData';
+import { News } from './mockData';
 
 const LOCALSTORAGE_KEY = 'samadhaan-news';
 
@@ -58,12 +58,13 @@ export function getStoredNews(): News[] {
           return parsed;
         }
       } catch {
-        // Fallback to mockData if parsing fails
-        return mockNews;
+        // Parsing failed – return empty list
+        return [];
       }
     }
   }
-  return mockNews;
+  // No stored news – return empty list
+  return [];
 }
 
 /**

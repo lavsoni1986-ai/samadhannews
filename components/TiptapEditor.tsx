@@ -5,7 +5,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import Link from '@tiptap/extension-link';
-import React, { useEffect, useCallback, useMemo } from 'react';
+import React, { useEffect, useCallback } from 'react';
 
 interface TiptapEditorProps {
   value: string;
@@ -45,6 +45,8 @@ export default function TiptapEditor({ value, onChange, placeholder }: TiptapEdi
   const extensions = React.useMemo(() => [
     StarterKit.configure({
       heading: { levels: [2, 3] },
+      link: false,
+      underline: false,
     }),
     Underline,
     TextAlign.configure({ types: ['heading', 'paragraph'] }),
@@ -61,6 +63,7 @@ export default function TiptapEditor({ value, onChange, placeholder }: TiptapEdi
   const editor = useEditor({
     extensions,
     content: value || '',
+    immediatelyRender: true,
     editorProps: {
       attributes: {
         class:

@@ -4,6 +4,17 @@ import cloudinaryLoader from '@/lib/imageLoader';
 import { News } from '@/lib/mockData';
 import { formatDateHindi } from '@/lib/utils';
 
+// Helper to add Cloudinary auto format/quality params only for Cloudinary URLs
+function optimizeCloudinaryUrl(url: string): string {
+  if (!url) return url;
+  if (url.includes('cloudinary.com')) {
+    const separator = url.includes('?') ? '&' : '?';
+    if (url.includes('f_auto') && url.includes('q_auto')) return url;
+    return `${url}${separator}f_auto,q_auto`;
+  }
+  return url;
+}
+
 interface HeroProps {
   featured: News;
 }
@@ -24,7 +35,7 @@ export default function Hero({ featured }: HeroProps) {
               <>
                 <Image
                   loader={cloudinaryLoader}
-                  src={thumbUrl}
+                  src={optimizeCloudinaryUrl(thumbUrl)}
                   alt={featured.title}
                   fill
                   sizes="(max-width: 1200px) 100vw, 1200px"
@@ -45,7 +56,7 @@ export default function Hero({ featured }: HeroProps) {
             ) : (
               <Image
                 loader={cloudinaryLoader}
-                src={featured.image}
+                src={optimizeCloudinaryUrl(featured.image)}
                 alt={featured.title}
                 fill
                 sizes="(max-width: 1200px) 100vw, 1200px"

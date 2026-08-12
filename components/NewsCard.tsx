@@ -38,13 +38,25 @@ export default function NewsCard({ news, variant = 'default' }: NewsCardProps) {
         <article className="flex gap-3 py-3 border-b last:border-0">
           <div className="relative w-20 h-14 flex-shrink-0 rounded overflow-hidden bg-gray-100">
             {news.youtubeId ? (
-              <img
+              <Image
+                loader={cloudinaryLoader}
                 src={`https://img.youtube.com/vi/${news.youtubeId}/mqdefault.jpg`}
                 alt={news.title}
+                width={160}
+                height={112}
+                sizes="160px"
                 className="object-cover w-full h-full"
               />
             ) : (
-              <img src={news.image} alt={news.title} className="object-cover w-full h-full" />
+              <Image
+                loader={cloudinaryLoader}
+                src={news.image}
+                alt={news.title}
+                width={160}
+                height={112}
+                sizes="160px"
+                className="object-cover w-full h-full"
+              />
             )}
             {isVideo && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/40">
@@ -71,13 +83,23 @@ export default function NewsCard({ news, variant = 'default' }: NewsCardProps) {
         <article className="relative h-full">
           <div className="relative aspect-[16/9] rounded-lg overflow-hidden mb-3">
             {news.youtubeId ? (
-              <img
+              <Image
+                loader={cloudinaryLoader}
                 src={`https://img.youtube.com/vi/${news.youtubeId}/maxresdefault.jpg`}
                 alt={news.title}
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover w-full h-full"
               />
             ) : (
-              <img src={news.image} alt={news.title} className="object-cover w-full h-full" />
+              <Image
+                loader={cloudinaryLoader}
+                src={news.image}
+                alt={news.title}
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover w-full h-full"
+              />
             )}
             {isVideo && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/30">
@@ -112,17 +134,25 @@ export default function NewsCard({ news, variant = 'default' }: NewsCardProps) {
     <Link href={`/news/${news.slug}`} className="group">
       <article className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden h-full">
         <div className="relative aspect-[16/9]">
-          {news.youtubeId ? (
-            <>
-              <img
+            {news.youtubeId ? (
+              <Image
+                loader={cloudinaryLoader}
                 src={`https://img.youtube.com/vi/${news.youtubeId}/mqdefault.jpg`}
                 alt={news.title}
+                fill
+                sizes="(max-width: 768px) 100vw, 33vw"
                 className="object-cover w-full h-full"
               />
-            </>
-          ) : (
-            <img src={news.image} alt={news.title} className="object-cover w-full h-full" />
-          )}
+            ) : (
+              <Image
+                loader={cloudinaryLoader}
+                src={news.image}
+                alt={news.title}
+                fill
+                sizes="(max-width: 768px) 100vw, 33vw"
+                className="object-cover w-full h-full"
+              />
+            )}
           {isVideo && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
               <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">

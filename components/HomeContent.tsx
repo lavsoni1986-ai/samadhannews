@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { Play, Image as ImageIcon, PenLine, TrendingUp, Newspaper } from 'lucide-react';
 import HeroNews from '@/components/Hero';
 import NewsCard from '@/components/NewsCard';
+import Image from 'next/image';
+import cloudinaryLoader from '@/lib/imageLoader';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
 import Newsletter from '@/components/Newsletter';
@@ -84,6 +86,18 @@ export default function HomeContent() {
   const [adSettings, setAdSettings] = useState<AdSettings>({});
   const [mounted, setMounted] = useState(false);
 
+  // Helper to add Cloudinary auto format/quality params only for Cloudinary URLs
+  function optimizeCloudinaryUrl(url: string): string {
+    if (!url) return url;
+    if (url.includes('cloudinary.com')) {
+      // Preserve existing query string if any
+      const separator = url.includes('?') ? '&' : '?';
+      if (url.includes('f_auto') && url.includes('q_auto')) return url;
+      return `${url}${separator}f_auto,q_auto`;
+    }
+    return url;
+  }
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -97,7 +111,9 @@ export default function HomeContent() {
         const { data: newsItems } = await supabase
           .from('news')
           .select('id, slug, title, excerpt, image, images, media_type, video_url, youtube_id, category, author, published_at, views, video_duration')
-          .order('published_at', { ascending: false });
+          .order('published_at', { ascending: false })
+          .limit(50);
+        console.log('Fetched news rows:', newsItems?.length);
         
         if (newsItems && newsItems.length > 0) {
           const mapped = newsItems.map(item => mapDbNewsToAppNews(item));
@@ -290,10 +306,13 @@ export default function HomeContent() {
                       href={`/news/${item.slug}`}
                       className="group relative aspect-square rounded-lg overflow-hidden"
                     >
-                      <img
+                      <Image
+                        loader={cloudinaryLoader}
                         src={item.image}
                         alt={item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-3">
                         <p className="text-white text-xs font-medium line-clamp-2">{item.title}</p>

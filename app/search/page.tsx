@@ -36,7 +36,7 @@ function SearchContent() {
       // Query title OR excerpt matching search term
       const { data, error } = await supabase
         .from('news')
-        .select('id, slug, title, excerpt, image, images, media_type, video_url, youtube_id, category, author, published_at, is_breaking, views, video_duration, cloudinary_public_id')
+        .select('id, slug, title, excerpt, image, images, media_type, video_url, youtube_id, category, author, published_at, is_breaking, views, video_duration')
         .or(`title.ilike.%${searchTerm}%,excerpt.ilike.%${searchTerm}%`)
         .order('published_at', { ascending: false })
         .limit(40);

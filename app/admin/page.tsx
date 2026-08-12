@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase, mapDbNewsToAppNews } from '@/lib/supabaseClient';
+import type { News } from '@/lib/mockData';
 import { formatDateHindi } from '@/lib/utils';
 import Logo from '@/components/Logo';
 import {
@@ -37,25 +38,7 @@ interface Category {
   created_at?: string;
 }
 
-interface News {
-  id: string;
-  slug: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  image: string;
-  images: string[];
-  media_type: 'image' | 'video';
-  video_url?: string;
-  youtube_id?: string;
-  category: string;
-  author: string;
-  published_at: string;
-  is_breaking: boolean;
-  views?: number;
-  cloudinary_public_id?: string;
-  video_duration?: string;
-}
+
 
 interface Settings {
   adsense_client: string;
@@ -257,8 +240,8 @@ export default function AdminPage() {
     category: '',
     author: 'संपादक',
     published_at: new Date().toISOString().substring(0, 16),
-    is_breaking: false,
-    cloudinary_public_id: '',
+    isBreaking: false,
+    cloudinaryPublicId: '',
     video_duration: '',
   });
   const [uploadingImages, setUploadingImages] = useState(false);
@@ -312,10 +295,10 @@ export default function AdminPage() {
   async function fetchAllData() {
     setLoading(true);
     try {
-      // 1. Fetch categories
+      // 1. Fetch categories (only required columns)
       const { data: cats, error: catErr } = await supabase
         .from('categories')
-        .select('*')
+        .select('slug, name, name_en')
         .order('name');
       if (catErr) throw catErr;
       setCategoriesList(cats || []);
@@ -325,13 +308,16 @@ export default function AdminPage() {
         setNewsForm(prev => ({ ...prev, category: cats[0].slug }));
       }
 
-      // 2. Fetch news
+      // 2. Fetch news (only summary fields, limit to most recent 100)
       const { data: newsItems, error: newsErr } = await supabase
         .from('news')
-        .select('*')
-        .order('published_at', { ascending: false });
+        .select('id, slug, title, excerpt, image, images, media_type, video_url, youtube_id, category, author, published_at, views, cloudinary_public_id, video_duration')
+        .order('published_at', { ascending: false })
+        .limit(100);
       if (newsErr) throw newsErr;
-      setNewsList(newsItems || []);
+      // Map DB rows to app `News` shape before storing in state
+      const mappedNews = (newsItems || []).map((it: any) => mapDbNewsToAppNews(it));
+      setNewsList(mappedNews);
 
       // 3. Fetch settings
       const { data: setts, error: settErr } = await supabase
@@ -413,25 +399,39 @@ export default function AdminPage() {
       category: newsForm.category,
       author: newsForm.author,
       published_at: new Date(newsForm.published_at).toISOString(),
-      is_breaking: newsForm.is_breaking,
-      cloudinary_public_id: newsForm.cloudinary_public_id || null,
+      is_breaking: newsForm.isBreaking,
       video_duration: newsForm.video_duration || null,
+      cloudinary_public_id: newsForm.cloudinaryPublicId,
     };
 
     try {
       if (editingNewsId) {
-        const { error } = await supabase
+        const { data: updatedData, error } = await supabase
           .from('news')
           .update(dbPayload)
-          .eq('id', editingNewsId);
+          .eq('id', editingNewsId)
+          .select()
+          .single();
         if (error) throw error;
         showNotification('success', 'समाचार सफलतापूर्वक अपडेट किया गया।');
+        // Update local list instead of refetching everything
+        setNewsList((prev) => {
+          const mapped = mapDbNewsToAppNews(updatedData);
+          return prev.map((n) => (n.id === mapped.id ? mapped : n));
+        });
       } else {
-        const { error } = await supabase
+        const { data: insertedData, error } = await supabase
           .from('news')
-          .insert([dbPayload]);
+          .insert([dbPayload])
+          .select()
+          .single();
         if (error) throw error;
         showNotification('success', 'नया समाचार सफलतापूर्वक जोड़ा गया।');
+        // Prepend inserted item to local list
+        setNewsList((prev) => {
+          const mapped = mapDbNewsToAppNews(insertedData);
+          return [mapped, ...prev];
+        });
       }
 
       // Reset form
@@ -448,8 +448,8 @@ export default function AdminPage() {
         category: categoriesList[0]?.slug || '',
         author: 'संपादक',
         published_at: new Date().toISOString().substring(0, 16),
-        is_breaking: false,
-        cloudinary_public_id: '',
+        isBreaking: false,
+        cloudinaryPublicId: '',
         video_duration: '',
       });
       setEditingNewsId(null);
@@ -470,15 +470,15 @@ export default function AdminPage() {
       content: item.content,
       image: item.image,
       images: Array.isArray(item.images) ? item.images : (item.image ? [item.image] : []),
-      media_type: item.media_type,
-      video_url: item.video_url || '',
-      youtube_id: item.youtube_id || '',
+      media_type: item.mediaType,
+      video_url: item.videoUrl || '',
+      youtube_id: item.youtubeId || '',
       category: item.category,
       author: item.author,
-      published_at: new Date(item.published_at).toISOString().substring(0, 16),
-      is_breaking: item.is_breaking,
-      cloudinary_public_id: item.cloudinary_public_id || '',
-      video_duration: item.video_duration || '',
+      published_at: new Date(item.publishedAt).toISOString().substring(0, 16),
+      isBreaking: item.isBreaking ?? false,
+      cloudinaryPublicId: item.cloudinaryPublicId || '',
+      video_duration: item.videoDuration || '',
     });
     setActiveTab('news');
   }
@@ -489,16 +489,19 @@ export default function AdminPage() {
 
     try {
       const itemToDelete = newsList.find(n => n.id === id);
-      if (itemToDelete?.cloudinary_public_id) {
-        console.log('Cloudinary Public ID tagged for deletion sync:', itemToDelete.cloudinary_public_id);
+      if (itemToDelete?.cloudinaryPublicId) {
+        console.log('Cloudinary Public ID tagged for deletion sync:', itemToDelete.cloudinaryPublicId);
       }
-      const { error } = await supabase
+      const { data: deletedData, error } = await supabase
         .from('news')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .select()
+        .single();
       if (error) throw error;
       showNotification('success', 'समाचार डिलीट कर दिया गया।');
-      fetchAllData();
+      // Remove from local list
+      setNewsList((prev) => prev.filter((n) => n.id !== (deletedData?.id?.toString() || id)));
     } catch (err: any) {
       showNotification('error', 'समाचार हटाने में असमर्थ: ' + err.message);
     } finally {
@@ -655,7 +658,7 @@ export default function AdminPage() {
           media_type: 'video',
           video_url: absoluteUrl,
           image: prev.image || posterUrl,
-          cloudinary_public_id: publicId,
+          cloudinaryPublicId: publicId,
           video_duration: formattedDuration || prev.video_duration,
         }));
       } else {
@@ -663,7 +666,7 @@ export default function AdminPage() {
           ...prev,
           image: absoluteUrl,
           images: [absoluteUrl, ...prev.images],
-          cloudinary_public_id: publicId,
+          cloudinaryPublicId: publicId,
         }));
       }
     } catch (err: any) {
@@ -832,8 +835,8 @@ export default function AdminPage() {
             youtube_id: n.youtube_id,
             category: n.category,
             author: n.author,
-            published_at: n.published_at,
-            is_breaking: n.is_breaking || false,
+            published_at: n.publishedAt,
+            isBreaking: n.isBreaking || false,
           }));
           const { error: delNewsErr } = await supabase.from('news').delete().neq('slug', 'temp-bypass-non-empty');
           if (delNewsErr) throw delNewsErr;
@@ -880,8 +883,8 @@ export default function AdminPage() {
 
   // Calculate statistics metrics
   const totalNews = newsList.length;
-  const breakingNewsCount = newsList.filter(n => n.is_breaking).length;
-  const videoNewsCount = newsList.filter(n => n.media_type === 'video').length;
+  const breakingNewsCount = newsList.filter(n => n.isBreaking).length;
+  const videoNewsCount = newsList.filter(n => n.mediaType === 'video').length;
 
   if (checkingAuth) {
     return (
@@ -1044,7 +1047,7 @@ export default function AdminPage() {
                         />
                         <div className="min-w-0 flex-1">
                           <h4 className="font-semibold text-sm truncate">{item.title}</h4>
-                          <span className="text-xs text-slate-500">{formatDateHindi(item.published_at)}</span>
+                          <span className="text-xs text-slate-500">{formatDateHindi(item.publishedAt)}</span>
                         </div>
                       </div>
                     ))}
@@ -1082,8 +1085,8 @@ export default function AdminPage() {
                         category: categoriesList[0]?.slug || '',
                         author: 'संपादक',
                         published_at: new Date().toISOString().substring(0, 16),
-                        is_breaking: false,
-                        cloudinary_public_id: '',
+                        isBreaking: false,
+                        cloudinaryPublicId: '',
                         video_duration: '',
                       });
                     }}
@@ -1335,13 +1338,13 @@ export default function AdminPage() {
                 <div className="flex items-center gap-3">
                   <input 
                     type="checkbox" 
-                    id="is_breaking"
-                    checked={newsForm.is_breaking}
-                    onChange={(e) => setNewsForm(prev => ({ ...prev, is_breaking: e.target.checked }))}
+                    id="isBreaking"
+                    checked={newsForm.isBreaking}
+                    onChange={(e) => setNewsForm(prev => ({ ...prev, isBreaking: e.target.checked }))}
                     className="w-5 h-5 accent-red-600 rounded cursor-pointer"
                   />
-                  <label htmlFor="is_breaking" className="text-sm font-bold cursor-pointer">
-                    इसे ब्रेकिंग न्यूज़ टिकर में दिखाएं (is_breaking)
+                  <label htmlFor="isBreaking" className="text-sm font-bold cursor-pointer">
+                    इसे ब्रेकिंग न्यूज़ टिकर में दिखाएं (isBreaking)
                   </label>
                 </div>
 
@@ -1392,8 +1395,8 @@ export default function AdminPage() {
                             <span className="text-xs bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 px-2 py-0.5 rounded font-medium">
                               {categoriesList.find(c => c.slug === item.category)?.name || item.category}
                             </span>
-                            <span className="text-xs text-slate-500">{formatDateHindi(item.published_at)}</span>
-                            {item.is_breaking && (
+                            <span className="text-xs text-slate-500">{formatDateHindi(item.publishedAt)}</span>
+                            {item.isBreaking && (
                               <span className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-0.5 rounded font-medium">Breaking</span>
                             )}
                             <span className="text-xs bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300 px-2 py-0.5 rounded font-medium flex items-center gap-1">

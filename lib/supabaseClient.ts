@@ -28,6 +28,7 @@ export function mapDbNewsToAppNews(dbItem: any): News {
     category: dbItem.category || '',
     author: dbItem.author || '',
     publishedAt: dbItem.published_at || new Date().toISOString(),
+    isBreaking: dbItem.is_breaking ?? false,
     views: dbItem.views || 0,
   };
 }

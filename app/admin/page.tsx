@@ -359,14 +359,24 @@ export default function AdminPage() {
     setTimeout(() => setStatusMsg({ type: '', text: '' }), 5000);
   }
 
-  // Auto-generate URL slug from Hindi/English text
+  // Auto-generate URL slug — ASCII only (strips Hindi/Devanagari chars to avoid %E0%A4 encoded URLs)
   function generateSlug(text: string): string {
-    return text
+    const ascii = text
       .toLowerCase()
       .trim()
-      // Replace spaces and special characters with dash
-      .replace(/[^a-zA-Z0-9\u0900-\u097F]+/g, '-')
+      // Strip Devanagari and all non-ASCII characters — they cause ugly percent-encoded URLs
+      .replace(/[\u0900-\u097F]/g, '')
+      // Replace anything that is not a-z, 0-9, or hyphen with a dash
+      .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
+
+    // If nothing is left (pure Hindi title), generate a date-time-based slug
+    if (!ascii) {
+      const now = new Date();
+      const pad = (n: number) => String(n).padStart(2, '0');
+      return `news-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`;
+    }
+    return ascii;
   }
 
   // Handle Logout
@@ -1127,8 +1137,11 @@ export default function AdminPage() {
                       value={newsForm.slug}
                       onChange={(e) => setNewsForm(prev => ({ ...prev, slug: generateSlug(e.target.value) }))}
                       className="w-full px-4 py-2 bg-white dark:bg-slate-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 text-slate-900 dark:text-white"
-                      placeholder="slug-url-here"
+                      placeholder="english-slug-only (e.g. tirangamay-hua-shahddol)"
                     />
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                      ⚠️ Slug सिर्फ English में लिखें — Hindi slug से WhatsApp पर ugly link आती है।
+                    </p>
                   </div>
 
                   <div>

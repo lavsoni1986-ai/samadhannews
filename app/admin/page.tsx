@@ -1271,6 +1271,8 @@ export default function AdminPage() {
                     value={newsForm.content}
                     onChange={(html) => setNewsForm(prev => ({ ...prev, content: html }))}
                     placeholder="पूरी समाचार रिपोर्ट विस्तार में लिखें..."
+                    cloudinaryCloudName={settings.cloudinary_cloud_name}
+                    cloudinaryUploadPreset={settings.cloudinary_upload_preset}
                   />
                 </div>
 

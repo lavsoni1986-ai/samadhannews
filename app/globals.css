@@ -126,3 +126,65 @@ h1, h2, h3, h4, h5, h6, p, li, button, a, span {
 .breaking-ticker-track:hover {
   animation-play-state: paused;
 }
+
+/* ============================================================
+   Inline Image — Article Content (Reporter Feature)
+   Patrika/Bhaskar style — image anywhere in body
+   ============================================================ */
+
+/* Base style for all inline images */
+.prose .news-inline-img {
+  border-radius: 8px;
+  display: block;
+}
+
+/* Size variants */
+.prose .news-inline-img[data-size="small"]  { width: 180px; max-width: 42%; }
+.prose .news-inline-img[data-size="medium"] { width: 360px; max-width: 60%; }
+.prose .news-inline-img[data-size="full"]   { width: 100%; max-width: 100%; }
+
+/* Desktop alignment — float left/right so text wraps */
+@media (min-width: 641px) {
+  .prose .news-inline-img[data-align="left"] {
+    float: left;
+    margin: 0.25rem 1.5rem 1rem 0;
+    clear: left;
+  }
+  .prose .news-inline-img[data-align="right"] {
+    float: right;
+    margin: 0.25rem 0 1rem 1.5rem;
+    clear: right;
+  }
+  .prose .news-inline-img[data-align="center"] {
+    margin: 1.25rem auto;
+    clear: both;
+  }
+  /* Full-width always center */
+  .prose .news-inline-img[data-size="full"] {
+    float: none !important;
+    margin: 1.25rem 0;
+    clear: both;
+  }
+}
+
+/* Mobile — no float, always center */
+@media (max-width: 640px) {
+  .prose .news-inline-img {
+    float: none !important;
+    display: block;
+    margin: 1rem auto !important;
+    max-width: 90% !important;
+  }
+  .prose .news-inline-img[data-size="small"]  { width: 150px; }
+  .prose .news-inline-img[data-size="medium"] { width: 100%; max-width: 100% !important; }
+  .prose .news-inline-img[data-size="full"]   { width: 100%; }
+}
+
+/* Clearfix after floated images so next section doesn't overlap */
+.prose p:has(+ p > .news-inline-img)::after,
+.prose .clearfix::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+

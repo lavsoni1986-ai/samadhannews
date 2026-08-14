@@ -311,7 +311,7 @@ export default function AdminPage() {
       // 2. Fetch news (only summary fields, limit to most recent 100)
       const { data: newsItems, error: newsErr } = await supabase
         .from('news')
-        .select('id, slug, title, excerpt, image, images, media_type, video_url, youtube_id, category, author, published_at, views, cloudinary_public_id, video_duration')
+        .select('id, slug, title, excerpt, image, images, media_type, video_url, youtube_id, category, author, published_at, views, video_duration')
         .order('published_at', { ascending: false })
         .limit(100);
       if (newsErr) throw newsErr;
@@ -401,7 +401,6 @@ export default function AdminPage() {
       published_at: new Date(newsForm.published_at).toISOString(),
       is_breaking: newsForm.isBreaking,
       video_duration: newsForm.video_duration || null,
-      cloudinary_public_id: newsForm.cloudinaryPublicId,
     };
 
     try {

@@ -56,10 +56,11 @@ export const metadata: Metadata = {
       "भारत की प्रमुख हिंदी डिजिटल न्यूज़ प्लेटफ़ॉर्म – ताज़ा, निष्पक्ष और तेज़ खबरें। खबर वही जो सही।",
     images: [
       {
-        url: "/og-image.svg",
+        url: `${SITE_URL}/og-image.jpg`,
         width: 1200,
         height: 630,
         alt: "समाधान NEWS – खबर वही जो सही",
+        type: "image/jpeg",
       },
     ],
   },
@@ -68,7 +69,7 @@ export const metadata: Metadata = {
     title: "समाधान NEWS | खबर वही जो सही",
     description:
       "भारत की प्रमुख हिंदी डिजिटल न्यूज़ प्लेटफ़ॉर्म – ताज़ा, निष्पक्ष और तेज़ खबरें।",
-    images: ["/og-image.svg"],
+    images: [`${SITE_URL}/og-image.jpg`],
   },
   robots: {
     index: true,

@@ -40,16 +40,20 @@ export async function generateMetadata({ params }: NewsPageProps): Promise<Metad
       title: item.title,
       description: item.excerpt,
       type: "article",
+      url: `https://samadhaannews.in/news/${slug}`,
       publishedTime: item.publishedAt,
       authors: [item.author],
       siteName: "समाधान NEWS",
-      images: item.mediaType === 'image' ? [{ url: item.image, width: 800, height: 450, alt: item.title }] : [],
+      // Use article image for both image and video news (WhatsApp needs absolute URL + JPG/PNG)
+      images: item.image
+        ? [{ url: item.image, width: 800, height: 450, alt: item.title, type: "image/jpeg" }]
+        : [{ url: `https://samadhaannews.in/og-image.jpg`, width: 1200, height: 630, alt: "समाधान NEWS", type: "image/jpeg" }],
     },
     twitter: {
       card: "summary_large_image",
       title: item.title,
       description: item.excerpt,
-      images: item.mediaType === 'image' ? [item.image] : [],
+      images: item.image ? [item.image] : [`https://samadhaannews.in/og-image.jpg`],
     },
   };
 }

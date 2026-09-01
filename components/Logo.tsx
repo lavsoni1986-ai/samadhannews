@@ -7,6 +7,7 @@ interface LogoProps {
   size?: "sm" | "md" | "lg";
   priority?: boolean;
   forceDark?: boolean;
+  variant?: "default" | "footer";
 }
 
 /**
@@ -17,12 +18,19 @@ export default function Logo({
   className = "",
   size = "md",
   priority = true,
+  forceDark = false,
+  variant = "default",
 }: LogoProps) {
   const sizeClasses = {
     sm: "h-9 w-auto",
     md: "h-11 sm:h-13 w-auto",
     lg: "h-14 sm:h-16 w-auto",
   }[size];
+
+  const src =
+    variant === "footer" || forceDark
+      ? "/samadhan-news-footer-white.png"
+      : "/logo.png";
 
   return (
     <Link
@@ -31,7 +39,7 @@ export default function Logo({
       aria-label="समाधान NEWS – मुख्य पृष्ठ"
     >
       <Image
-        src="/logo.png"
+        src={src}
         alt="समाधान NEWS – खबर वही जो सही"
         width={1024}
         height={341}

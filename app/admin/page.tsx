@@ -308,10 +308,10 @@ export default function AdminPage() {
         setNewsForm(prev => ({ ...prev, category: cats[0].slug }));
       }
 
-      // 2. Fetch news (only summary fields, limit to most recent 100)
+      // 2. Fetch news (limit to most recent 100)
       const { data: newsItems, error: newsErr } = await supabase
         .from('news')
-        .select('id, slug, title, excerpt, image, images, media_type, video_url, youtube_id, category, author, published_at, views, video_duration')
+        .select('id, slug, title, excerpt, content, image, images, media_type, video_url, youtube_id, category, author, published_at, views, video_duration')
         .order('published_at', { ascending: false })
         .limit(100);
       if (newsErr) throw newsErr;

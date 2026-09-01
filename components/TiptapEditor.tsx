@@ -290,7 +290,7 @@ export default function TiptapEditor({
 
   // Sync external value changes (e.g., when editing an existing news item)
   useEffect(() => {
-    if (editor && value !== editor.getHTML()) {
+    if (editor && !editor.isDestroyed && value !== editor.getHTML()) {
       editor.commands.setContent(value || '', { emitUpdate: false });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

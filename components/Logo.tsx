@@ -5,78 +5,39 @@ interface LogoProps {
   className?: string;
   showTagline?: boolean;
   size?: "sm" | "md" | "lg";
+  priority?: boolean;
   forceDark?: boolean;
 }
 
+/**
+ * समाधान NEWS brand logo
+ * Uses the official transparent PNG asset exactly as supplied.
+ */
 export default function Logo({
   className = "",
-  showTagline = false,
-  forceDark = false,
+  size = "md",
+  priority = true,
 }: LogoProps) {
-  // Combine classes into a single clean string cleanly
-  const linkClassName = `flex items-center justify-center bg-transparent ${className}`.trim().replace(/\s+/g, " ");
+  const sizeClasses = {
+    sm: "h-9 w-auto",
+    md: "h-11 sm:h-13 w-auto",
+    lg: "h-14 sm:h-16 w-auto",
+  }[size];
 
   return (
     <Link
       href="/"
-      className={linkClassName}
+      className={`inline-flex items-center shrink-0 bg-transparent ${className}`.trim()}
       aria-label="समाधान NEWS – मुख्य पृष्ठ"
     >
-      {showTagline ? (
-        <>
-          {/* Mobile view: Dynamic crop to tagline-free logo for maximum readability */}
-          <div className="md:hidden h-full w-full flex items-center justify-center bg-transparent">
-            <Image
-              src="/logo-no-tagline.png"
-              alt="समाधान NEWS"
-              width={192}
-              height={64}
-              priority
-              unoptimized={true}
-              className="h-full w-full object-contain bg-transparent"
-            />
-          </div>
-
-          {/* Desktop view: Light mode logo with tagline */}
-          <div className={forceDark ? "hidden" : "hidden md:block dark:md:hidden h-full w-full bg-transparent"}>
-            <Image
-              src="/logo.png"
-              alt="समाधान NEWS"
-              width={240}
-              height={80}
-              priority
-              unoptimized={true}
-              className="h-full w-full object-contain bg-transparent"
-            />
-          </div>
-
-          {/* Desktop view: Dark mode logo with tagline */}
-          <div className={forceDark ? "hidden md:block h-full w-full bg-transparent" : "hidden dark:md:block h-full w-full bg-transparent"}>
-            <Image
-              src="/logo-dark.png"
-              alt="समाधान NEWS"
-              width={240}
-              height={80}
-              priority
-              unoptimized={true}
-              className="h-full w-full object-contain bg-transparent"
-            />
-          </div>
-        </>
-      ) : (
-        /* Default: Logo without tagline */
-        <div className="h-full w-full flex items-center justify-center bg-transparent">
-          <Image
-            src="/logo-no-tagline.png"
-            alt="समाधान NEWS"
-            width={240}
-            height={80}
-            priority
-            unoptimized={true}
-            className="h-full w-full object-contain bg-transparent"
-          />
-        </div>
-      )}
+      <Image
+        src="/logo.png"
+        alt="समाधान NEWS – खबर वही जो सही"
+        width={1024}
+        height={341}
+        priority={priority}
+        className={`${sizeClasses} object-contain`}
+      />
     </Link>
   );
 }

@@ -108,16 +108,11 @@ export default function Navbar() {
       </div>
 
       {/* Main Navbar */}
-      <nav className="backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border-b border-border dark:border-slate-700 overflow-visible transition-colors">
-        <div className="max-w-7xl mx-auto px-4 overflow-visible">
-          <div className="flex justify-between items-center h-20 md:h-24 gap-3 overflow-visible">
-            {/* Mobile: centered logo, desktop: normal brand block */}
-            <div className="md:hidden w-8" />
-            <div className="flex-1 flex justify-center md:justify-start md:flex-none overflow-visible">
-              <div className="h-20 w-56 md:h-28 md:w-80 inline-block relative overflow-visible bg-transparent scale-110 md:scale-100 mt-2 md:mt-0">
-                <Logo size="lg" showTagline={true} className="h-full w-full object-contain bg-transparent transition-all hover:scale-105 duration-200 overflow-visible" />
-              </div>
-            </div>
+      <nav className="bg-white dark:bg-slate-900 border-b border-border dark:border-slate-700 transition-colors">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-between items-center h-16 sm:h-20 gap-4">
+            {/* Logo */}
+            <Logo size="md" className="py-1" />
 
             {/* Search - Desktop */}
             <div className="hidden md:flex flex-1 justify-center max-w-md">

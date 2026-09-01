@@ -111,9 +111,9 @@ const structuredData = {
       url: SITE_URL,
       logo: {
         "@type": "ImageObject",
-        url: `${SITE_URL}/icon.svg`,
-        width: 512,
-        height: 512,
+        url: `${SITE_URL}/logo.png`,
+        width: 1024,
+        height: 341,
       },
       sameAs: [
         "https://www.youtube.com/@SamadhaanNews",
